@@ -52,5 +52,5 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
-/.vs
-/Properties/PublishProfiles/_csproj-assets-snippet.txt
+*/.vs
+/YtDownloader/Properties/PublishProfiles/_csproj-assets-snippet.txt
