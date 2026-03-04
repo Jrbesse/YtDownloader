@@ -11,14 +11,12 @@ namespace YtDownloader.Services;
 /// </summary>
 public class YtDlpService
 {
-    // Paths to bundled binaries (copied next to the .exe at publish time)
     private static readonly string AppDir =
         Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName)!;
 
-    public static string YtDlpPath => Path.Combine(AppDir, "Assets", "yt-dlp.exe");
+    public static string YtDlpPath  => Path.Combine(AppDir, "Assets", "yt-dlp.exe");
     public static string FfmpegPath => Path.Combine(AppDir, "Assets", "ffmpeg.exe");
 
-    // Regex to parse yt-dlp's "[download]  45.3% of  847.12MiB at  9.10MiB/s ETA 00:38"
     private static readonly Regex ProgressRegex = new(
         @"\[download\]\s+(?<pct>[\d.]+)%\s+of\s+(?<size>[\d.]+\S+)\s+at\s+(?<speed>[\d.]+\S+)\s+ETA\s+(?<eta>\S+)",
         RegexOptions.Compiled);
@@ -31,12 +29,12 @@ public class YtDlpService
         var args = BuildArguments(options);
         var psi = new ProcessStartInfo
         {
-            FileName = YtDlpPath,
-            Arguments = args,
+            FileName               = YtDlpPath,
+            Arguments              = args,
             RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
+            RedirectStandardError  = true,
+            UseShellExecute        = false,
+            CreateNoWindow         = true,
         };
 
         using var process = new Process { StartInfo = psi, EnableRaisingEvents = true };
@@ -44,8 +42,7 @@ public class YtDlpService
         process.OutputDataReceived += (_, e) =>
         {
             if (e.Data is null) return;
-            var progress = ParseProgress(e.Data);
-            onProgress(progress);
+            onProgress(ParseProgress(e.Data));
         };
 
         process.ErrorDataReceived += (_, e) =>
@@ -53,8 +50,8 @@ public class YtDlpService
             if (e.Data is null) return;
             onProgress(new DownloadProgress
             {
-                Status = "Processing…",
-                Detail = e.Data,
+                Status          = "Processing…",
+                Detail          = e.Data,
                 IsIndeterminate = true,
             });
         };
@@ -75,7 +72,6 @@ public class YtDlpService
     {
         var parts = new List<string>();
 
-        // Format selection
         switch (options.Format)
         {
             case "mp3":
@@ -84,26 +80,20 @@ public class YtDlpService
             case "webm":
                 parts.Add("-f bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]");
                 break;
-            default: // mp4
+            default:
                 var qualityFilter = MapQualityToFilter(options.Quality);
                 parts.Add($"-f \"{qualityFilter}\"");
                 break;
         }
 
-        // ffmpeg location
         parts.Add($"--ffmpeg-location \"{FfmpegPath}\"");
 
-        // Output template
         var outputTemplate = options.IsPlaylist
             ? Path.Combine(options.OutputFolder, "%(playlist)s", "%(playlist_index)s - %(title)s.%(ext)s")
             : Path.Combine(options.OutputFolder, "%(title)s.%(ext)s");
 
         parts.Add($"-o \"{outputTemplate}\"");
-
-        // Progress in a machine-parseable format
         parts.Add("--newline");
-
-        // The URL (always last)
         parts.Add($"\"{options.Url}\"");
 
         return string.Join(" ", parts);
@@ -117,18 +107,17 @@ public class YtDlpService
         "720p"       => "bestvideo[height<=720]+bestaudio/best[height<=720]",
         "480p"       => "bestvideo[height<=480]+bestaudio/best[height<=480]",
         "360p"       => "bestvideo[height<=360]+bestaudio/best[height<=360]",
-        _            => "bestvideo+bestaudio/best",   // "Best available"
+        _            => "bestvideo+bestaudio/best",
     };
 
     private static DownloadProgress ParseProgress(string line)
     {
-        // Downloading a fragment / merging
         if (line.StartsWith("[ffmpeg]") || line.StartsWith("[Merger]"))
         {
             return new DownloadProgress
             {
-                Status = "Merging streams…",
-                Detail = "ffmpeg is combining video and audio",
+                Status          = "Merging streams…",
+                Detail          = "ffmpeg is combining video and audio",
                 IsIndeterminate = true,
             };
         }
@@ -139,75 +128,78 @@ public class YtDlpService
             var pct = double.Parse(match.Groups["pct"].Value);
             return new DownloadProgress
             {
-                Status = "Downloading…",
-                Detail = $"{match.Groups["size"].Value}  ·  {match.Groups["speed"].Value}  ·  ETA {match.Groups["eta"].Value}",
-                Percent = pct,
+                Status          = "Downloading…",
+                Detail          = $"{match.Groups["size"].Value}  ·  {match.Groups["speed"].Value}  ·  ETA {match.Groups["eta"].Value}",
+                Percent         = pct,
                 IsIndeterminate = false,
             };
         }
 
         if (line.Contains("[download] Destination:"))
-        {
             return new DownloadProgress
             {
-                Status = "Starting download…",
-                Detail = line.Replace("[download] Destination:", "").Trim(),
+                Status          = "Starting download…",
+                Detail          = line.Replace("[download] Destination:", "").Trim(),
                 IsIndeterminate = true,
             };
-        }
 
         if (line.Contains("[info]") || line.Contains("[youtube]"))
-        {
             return new DownloadProgress
             {
-                Status = "Fetching video info…",
-                Detail = line,
+                Status          = "Fetching video info…",
+                Detail          = line,
                 IsIndeterminate = true,
             };
-        }
 
         return new DownloadProgress
         {
-            Status = "Working…",
-            Detail = line,
+            Status          = "Working…",
+            Detail          = line,
             IsIndeterminate = true,
         };
     }
 
     /// <summary>
-    /// Runs yt-dlp --dump-json to fetch video metadata without downloading.
-    /// Returns null if the URL is invalid or the fetch fails.
+    /// Fetches video metadata without downloading.
+    /// Pass playlistFirstOnly: true for playlist URLs to get the first entry's info.
     /// </summary>
-    public static async Task<VideoInfo?> FetchVideoInfoAsync(string url, CancellationToken ct = default)
+    public static async Task<VideoInfo?> FetchVideoInfoAsync(
+        string url,
+        CancellationToken ct = default,
+        bool playlistFirstOnly = false)
     {
         try
         {
+            // --playlist-items 1 fetches only the first entry from a playlist
+            var playlistArg = playlistFirstOnly ? "--playlist-items 1" : "--no-playlist";
+
             var psi = new ProcessStartInfo
             {
-                FileName = YtDlpPath,
-                Arguments = $"--dump-json --no-playlist \"{url}\"",
+                FileName               = YtDlpPath,
+                Arguments              = $"--dump-json {playlistArg} \"{url}\"",
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
+                RedirectStandardError  = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true,
             };
 
             using var process = Process.Start(psi)!;
-            var json = await process.StandardOutput.ReadToEndAsync(ct);
+            // For playlists, yt-dlp outputs one JSON object per line — read only the first
+            var json = await process.StandardOutput.ReadLineAsync(ct);
             await process.WaitForExitAsync(ct);
 
             if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(json))
                 return null;
 
-            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            using var doc  = System.Text.Json.JsonDocument.Parse(json);
             var root = doc.RootElement;
 
             return new VideoInfo
             {
-                Title = root.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "",
-                Channel = root.TryGetProperty("channel", out var c) ? c.GetString() ?? "" : "",
-                ThumbnailUrl = root.TryGetProperty("thumbnail", out var th) ? th.GetString() ?? "" : "",
-                DurationSeconds = root.TryGetProperty("duration", out var d) ? d.GetDouble() : 0,
+                Title           = root.TryGetProperty("title",     out var t)  ? t.GetString()  ?? "" : "",
+                Channel         = root.TryGetProperty("channel",   out var c)  ? c.GetString()  ?? "" : "",
+                ThumbnailUrl    = root.TryGetProperty("thumbnail", out var th) ? th.GetString() ?? "" : "",
+                DurationSeconds = root.TryGetProperty("duration",  out var d)  ? d.GetDouble()       : 0,
             };
         }
         catch
@@ -223,23 +215,22 @@ public class YtDlpService
         {
             var path = tool == "yt-dlp" ? YtDlpPath : FfmpegPath;
             var arg  = tool == "yt-dlp" ? "--version" : "-version";
-            
+
             var psi = new ProcessStartInfo
             {
-                FileName = path,
-                Arguments = arg,
+                FileName               = path,
+                Arguments              = arg,
                 RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true,
             };
             using var p = Process.Start(psi)!;
             var output = await p.StandardOutput.ReadLineAsync();
             await p.WaitForExitAsync();
-            if (output.Split(' ').Length > 3) //Return only the relevant part of 'ffmpeg -version'
-            {
-                string[] getFfmpegVersion = output.Split(" ");
-                output = getFfmpegVersion[2];
-            }
+
+            if (output?.Split(' ').Length > 3)
+                output = output.Split(' ')[2];
+
             return output?.Trim();
         }
         catch

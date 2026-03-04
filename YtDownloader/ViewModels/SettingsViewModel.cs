@@ -16,16 +16,35 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _autoCheckUpdates     = true;
     [ObservableProperty] private bool _rememberOutputFolder = true;
 
-    // Backed by the shared AppSettings singleton so HistoryPage can react to it
+    // ── Pass-through to AppSettings singleton ─────────────────────────────────
+
     public bool ShowDiagnostics
     {
         get => AppSettings.Instance.ShowDiagnostics;
         set => AppSettings.Instance.ShowDiagnostics = value;
     }
 
+    // Theme: bound to a ComboBox with items "System", "Light", "Dark"
+    public string SelectedTheme
+    {
+        get => AppSettings.Instance.Theme;
+        set
+        {
+            if (AppSettings.Instance.Theme == value) return;
+            AppSettings.Instance.Theme = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public List<string> AvailableThemes { get; } = new() { "System", "Light", "Dark" };
+
+    // ── Default folder ────────────────────────────────────────────────────────
+
     [ObservableProperty]
     private string _defaultFolder = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+
+    // ── Dependency versions ───────────────────────────────────────────────────
 
     public async void LoadVersionsAsync()
     {

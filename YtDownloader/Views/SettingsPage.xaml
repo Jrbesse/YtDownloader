@@ -46,6 +46,37 @@
                 </Border>
             </StackPanel>
 
+            <!-- Appearance Card -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Appearance" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <Border
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="App theme" />
+                            <TextBlock
+                                Text="Takes effect immediately and persists across restarts."
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <ComboBox
+                            Grid.Column="1"
+                            ItemsSource="{x:Bind ViewModel.AvailableThemes}"
+                            SelectedItem="{x:Bind ViewModel.SelectedTheme, Mode=TwoWay}"
+                            MinWidth="120"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
             <!-- Preferences Card -->
             <StackPanel Spacing="8">
                 <TextBlock Text="Preferences" Style="{ThemeResource SubtitleTextBlockStyle}" />
@@ -56,9 +87,6 @@
                     CornerRadius="8"
                     Padding="16">
                     <StackPanel Spacing="16">
-                        <ToggleSwitch
-                            Header="Show notification when download completes"
-                            IsOn="{x:Bind ViewModel.ShowNotifications, Mode=TwoWay}" />
                         <ToggleSwitch
                             Header="Automatically check for yt-dlp updates on startup"
                             IsOn="{x:Bind ViewModel.AutoCheckUpdates, Mode=TwoWay}" />

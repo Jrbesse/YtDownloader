@@ -56,7 +56,6 @@
 
             <!-- ── PLAYLIST NOTICE ── -->
             <InfoBar
-                x:Name="PlaylistInfoBar"
                 IsOpen="{x:Bind ViewModel.IsPlaylist, Mode=OneWay}"
                 IsClosable="False"
                 Severity="Informational"
@@ -64,56 +63,62 @@
                 Message="{x:Bind ViewModel.PlaylistMessage, Mode=OneWay}" />
 
             <!-- ── VIDEO PREVIEW ── -->
-            <Border
+            <StackPanel
                 Visibility="{x:Bind ViewModel.VideoInfoVisibility, Mode=OneWay}"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="16">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                Spacing="6">
 
-                    <!-- Thumbnail placeholder -->
-                    <Border
-                        Grid.Column="0"
-                        Width="120" Height="68"
-                        CornerRadius="6"
-                        Background="{ThemeResource SubtleFillColorSecondaryBrush}">
-                        <Image
-                            x:Name="ThumbnailImage"
-                            Stretch="UniformToFill" />
-                        <!--Source="{x:Bind ViewModel.ThumbnailUrl, Mode=OneWay}"-->
+                <!-- Label changes to "First video in playlist" for playlists -->
+                <TextBlock
+                    Text="{x:Bind ViewModel.PreviewLabel, Mode=OneWay}"
+                    Style="{ThemeResource BodyStrongTextBlockStyle}" />
 
-                    </Border>
+                <Border
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                        <TextBlock
-                            Text="{x:Bind ViewModel.VideoTitle, Mode=OneWay}"
-                            Style="{ThemeResource BodyStrongTextBlockStyle}"
-                            TextTrimming="CharacterEllipsis"
-                            MaxLines="2"
-                            TextWrapping="Wrap" />
-                        <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border
+                            Grid.Column="0"
+                            Width="120" Height="68"
+                            CornerRadius="6"
+                            Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                            <Image
+                                x:Name="ThumbnailImage"
+                                Stretch="UniformToFill" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                             <TextBlock
-                                Text="{x:Bind ViewModel.ChannelName, Mode=OneWay}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <TextBlock
-                                Text="·"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <TextBlock
-                                Text="{x:Bind ViewModel.VideoDuration, Mode=OneWay}"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                Text="{x:Bind ViewModel.VideoTitle, Mode=OneWay}"
+                                Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                TextTrimming="CharacterEllipsis"
+                                MaxLines="2"
+                                TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock
+                                    Text="{x:Bind ViewModel.ChannelName, Mode=OneWay}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock
+                                    Text="·"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock
+                                    Text="{x:Bind ViewModel.VideoDuration, Mode=OneWay}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                    </Grid>
+                </Border>
+            </StackPanel>
 
             <!-- ── FORMAT SELECTOR ── -->
             <StackPanel Spacing="8">

@@ -57,8 +57,10 @@ YtDownloader/
 │   └── DownloadHistoryItem.cs  A completed download record
 │
 ├── Services/
-│   ├── YtDlpService.cs     Runs yt-dlp as a subprocess, parses progress
-│   └── HistoryService.cs   Stores download history (persisted to AppData)
+│   ├── YtDlpService.cs         Runs yt-dlp as a subprocess, parses progress
+│   ├── HistoryService.cs       Stores download history (persisted to AppData)
+│   ├── AppSettings.cs          Persisted app-wide settings (theme, diagnostics)
+│   └── YtDlpUpdaterService.cs  Silently updates the bundled yt-dlp binary
 │
 ├── ViewModels/
 │   ├── DownloadViewModel.cs    All logic for the Download page
@@ -86,14 +88,13 @@ YtDownloader/
 - **yt-dlp subprocess** — `YtDlpService` launches yt-dlp.exe, reads stdout line-by-line, and parses progress with a regex
 - **Dispatcher** — progress callbacks marshal back to the UI thread via `DispatcherQueue`
 - **Persistent history** — `HistoryService` serializes to JSON in `%LocalAppData%\YtDownloader\history.json`
+- **Persistent settings** — `AppSettings` serializes to JSON in `%LocalAppData%\YtDownloader\settings.json`
 
 ---
 
 ## 🔮 Suggested Next Steps (v2)
 
-- [ ] Video thumbnail fetching (yt-dlp `--write-thumbnail` or YouTube oEmbed API)
 - [ ] Download queue for multiple URLs
-- [ ] Windows toast notifications on completion
 - [ ] Auto-update yt-dlp binary in-app
 - [ ] Subtitle download support
-- [ ] Dark/light theme toggle
+- [ ] Download again from history

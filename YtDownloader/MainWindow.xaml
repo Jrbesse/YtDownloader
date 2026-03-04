@@ -7,7 +7,7 @@
     mc:Ignorable="d"
     Title="YT Downloader">
 
-    <Grid>
+    <Grid RequestedTheme="Dark">
         <NavigationView
             x:Name="NavView"
             PaneDisplayMode="Left"

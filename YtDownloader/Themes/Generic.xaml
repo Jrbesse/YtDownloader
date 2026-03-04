@@ -1,8 +1,22 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
     <!--
-        Add any app-wide style overrides here.
-        WinUI 3 Fluent styles are loaded automatically via XamlControlsResources in App.xaml.
+        Override NavigationView pane backgrounds so they follow the
+        app theme instead of staying white in dark mode.
     -->
+    <StaticResource x:Key="NavigationViewExpandedPaneBackground"
+                    ResourceKey="ApplicationPageBackgroundThemeBrush" />
+    <StaticResource x:Key="NavigationViewContentBackground"
+                    ResourceKey="ApplicationPageBackgroundThemeBrush" />
+    <StaticResource x:Key="NavigationViewTopPaneBackground"
+                    ResourceKey="ApplicationPageBackgroundThemeBrush" />
+    <StaticResource x:Key="NavigationViewDefaultPaneBackground"
+                    ResourceKey="ApplicationPageBackgroundThemeBrush" />
+    <StaticResource x:Key="NavigationViewItemBackground"
+                    ResourceKey="ApplicationPageBackgroundThemeBrush" />
+    <StaticResource x:Key="NavigationViewItemBackgroundSelected"
+                    ResourceKey="AccentFillColorDefaultBrush" />
+
 </ResourceDictionary>

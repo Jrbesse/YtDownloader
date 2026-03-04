@@ -17,7 +17,6 @@ public partial class DownloadViewModel : ObservableObject
     private readonly HistoryService _history = HistoryService.Instance;
     private readonly DispatcherQueue _dispatcher = DispatcherQueue.GetForCurrentThread();
 
-    // Cancellation for preview fetches and active downloads
     private CancellationTokenSource? _previewCts;
     private CancellationTokenSource? _downloadCts;
     private const int PreviewDebounceMs = 800;
@@ -39,13 +38,15 @@ public partial class DownloadViewModel : ObservableObject
 
     // ── Video Preview ────────────────────────────────────────────────────────
 
-    [ObservableProperty] private Visibility _videoInfoVisibility = Visibility.Collapsed;
+    [ObservableProperty] private Visibility _videoInfoVisibility     = Visibility.Collapsed;
     [ObservableProperty] private Visibility _previewLoadingVisibility = Visibility.Collapsed;
-    [ObservableProperty] private string _videoTitle = string.Empty;
-    [ObservableProperty] private string _channelName = string.Empty;
+    [ObservableProperty] private string _videoTitle    = string.Empty;
+    [ObservableProperty] private string _channelName   = string.Empty;
     [ObservableProperty] private string _videoDuration = string.Empty;
+    [ObservableProperty] private string _thumbnailUrl  = string.Empty;
 
-    [ObservableProperty] private string _thumbnailUrl = string.Empty;
+    // Label shown above the preview card — changes for playlists
+    [ObservableProperty] private string _previewLabel = "Video preview";
 
     private async Task FetchPreviewDebounced(string url)
     {
@@ -56,7 +57,7 @@ public partial class DownloadViewModel : ObservableObject
         VideoInfoVisibility      = Visibility.Collapsed;
         PreviewLoadingVisibility = Visibility.Collapsed;
 
-        if (string.IsNullOrWhiteSpace(url) || IsPlaylist) return;
+        if (string.IsNullOrWhiteSpace(url)) return;
         if (!url.Contains("youtube.com/") && !url.Contains("youtu.be/")) return;
 
         try
@@ -64,7 +65,8 @@ public partial class DownloadViewModel : ObservableObject
             await Task.Delay(PreviewDebounceMs, ct);
             PreviewLoadingVisibility = Visibility.Visible;
 
-            var info = await YtDlpService.FetchVideoInfoAsync(url, ct);
+            // For playlists pass --playlist-items 1 so we only fetch the first entry
+            var info = await YtDlpService.FetchVideoInfoAsync(url, ct, playlistFirstOnly: IsPlaylist);
             if (ct.IsCancellationRequested) return;
 
             PreviewLoadingVisibility = Visibility.Collapsed;
@@ -74,6 +76,7 @@ public partial class DownloadViewModel : ObservableObject
             ChannelName   = info.Channel;
             VideoDuration = info.DurationFormatted;
             ThumbnailUrl  = info.ThumbnailUrl;
+            PreviewLabel  = IsPlaylist ? "First video in playlist" : "Video preview";
 
             VideoInfoVisibility = Visibility.Visible;
         }
@@ -126,7 +129,6 @@ public partial class DownloadViewModel : ObservableObject
     [ObservableProperty] private string _doneMessage = string.Empty;
     [ObservableProperty] private Visibility _downloadVisibility = Visibility.Visible;
 
-
     // ── yt-dlp update state ───────────────────────────────────────────────────
 
     [ObservableProperty] private bool _updateBannerVisibility = false;
@@ -164,7 +166,6 @@ public partial class DownloadViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Url)) return;
 
-        // Create a fresh cancellation token for this download
         _downloadCts = new CancellationTokenSource();
 
         DoneVisibility          = Visibility.Collapsed;
@@ -198,6 +199,7 @@ public partial class DownloadViewModel : ObservableObject
             _history.Add(new DownloadHistoryItem
             {
                 Title       = string.IsNullOrEmpty(VideoTitle) ? "Download" : VideoTitle,
+                Url         = Url,
                 OutputPath  = OutputFolder,
                 Format      = SelectedFormat.ToUpper(),
                 Quality     = SelectedQuality,
@@ -206,7 +208,6 @@ public partial class DownloadViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            // User hit Cancel — reset to a clean ready state
             CancelVisibility   = Visibility.Visible;
             DownloadVisibility = Visibility.Collapsed;
             ProgressVisibility = Visibility.Collapsed;
@@ -229,10 +230,7 @@ public partial class DownloadViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void CancelDownload()
-    {
-        _downloadCts?.Cancel();
-    }
+    private void CancelDownload() => _downloadCts?.Cancel();
 
     [RelayCommand]
     private void OpenFolder() =>
@@ -246,6 +244,7 @@ public partial class DownloadViewModel : ObservableObject
         ChannelName          = string.Empty;
         VideoDuration        = string.Empty;
         ThumbnailUrl         = string.Empty;
+        PreviewLabel         = "Video preview";
         VideoInfoVisibility  = Visibility.Collapsed;
         ProgressVisibility   = Visibility.Collapsed;
         CancelVisibility     = Visibility.Visible;
@@ -277,22 +276,11 @@ public partial class DownloadViewModel : ObservableObject
     {
         _dispatcher.TryEnqueue(() =>
         {
-            if (YtDlpUpdateState.IsSwappingFile)
-            {
-                UpdateBannerText = "Applying yt-dlp update, please wait…";
-                UpdateBannerVisibility = YtDlpUpdateState.IsUpdating || YtDlpUpdateState.IsSwappingFile;
-            }
-            else if (YtDlpUpdateState.IsUpdating)
-            {
-                UpdateBannerText = "Downloading yt-dlp update in the background…";
-                UpdateBannerVisibility = YtDlpUpdateState.IsUpdating || YtDlpUpdateState.IsSwappingFile;
-            }
-            else
-            {
-                UpdateBannerVisibility = YtDlpUpdateState.IsUpdating || YtDlpUpdateState.IsSwappingFile;
-            }
+            UpdateBannerText = YtDlpUpdateState.IsSwappingFile
+                ? "Applying yt-dlp update, please wait…"
+                : "Downloading yt-dlp update in the background…";
 
-            // Notify the Download command to re-evaluate CanExecute
+            UpdateBannerVisibility = YtDlpUpdateState.IsUpdating || YtDlpUpdateState.IsSwappingFile;
             DownloadCommand.NotifyCanExecuteChanged();
         });
     }
