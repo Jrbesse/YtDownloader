@@ -5,56 +5,86 @@
     xmlns:models="using:YtDownloader.Models"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <StackPanel Padding="32,24" Spacing="16">
-        <TextBlock Text="Download History" Style="{ThemeResource TitleTextBlockStyle}" />
+    <ScrollViewer>
+        <StackPanel Padding="32,24" Spacing="16">
 
-        <ListView
-            ItemsSource="{x:Bind ViewModel.HistoryItems, Mode=OneWay}"
-            SelectionMode="None">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:DownloadHistoryItem">
-                    <Grid ColumnSpacing="14" Padding="4,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+            <!-- Header row -->
+            <Grid>
+                <TextBlock
+                    Text="Download History"
+                    Style="{ThemeResource TitleTextBlockStyle}"
+                    VerticalAlignment="Center" />
+                <Button
+                    Content="Clear All"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Click="ClearAll_Click" />
+            </Grid>
 
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+            <!-- Diagnostic panel — visible only when enabled in Settings -->
+            <Expander
+                Header="🔍 Storage Diagnostics"
+                IsExpanded="True"
+                Visibility="{x:Bind ViewModel.DiagnosticsVisibility, Mode=OneWay}">
+                <TextBlock
+                    Text="{x:Bind ViewModel.DiagnosticInfo, Mode=OneWay}"
+                    FontFamily="Consolas"
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    Margin="0,8,0,0"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Expander>
+
+            <!-- History list -->
+            <ListView
+                ItemsSource="{x:Bind ViewModel.HistoryItems, Mode=OneWay}"
+                SelectionMode="None">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:DownloadHistoryItem">
+                        <Grid ColumnSpacing="12" Padding="4,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock
+                                    Text="{x:Bind Title}"
+                                    Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Text="{x:Bind SubText}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
                             <TextBlock
-                                Text="{x:Bind Title}"
-                                Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                TextTrimming="CharacterEllipsis" />
-                            <TextBlock
-                                Text="{x:Bind SubText}"
+                                Grid.Column="1"
+                                Text="{x:Bind DateText}"
                                 Style="{ThemeResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                VerticalAlignment="Center" />
 
-                        <TextBlock
-                            Grid.Column="1"
-                            Text="{x:Bind DateText}"
-                            Style="{ThemeResource CaptionTextBlockStyle}"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            VerticalAlignment="Center" />
+                            <Button
+                                Grid.Column="2"
+                                Content="Open"
+                                Tag="{x:Bind OutputPath}"
+                                Click="OpenHistoryItem_Click"
+                                VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
 
-                        <Button
-                            Grid.Column="2"
-                            Content="Open"
-                            Tag="{x:Bind OutputPath}"
-                            Click="OpenHistoryItem_Click"
-                            VerticalAlignment="Center" />
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            <TextBlock
+                Text="No downloads yet."
+                Visibility="{x:Bind ViewModel.EmptyVisibility, Mode=OneWay}"
+                Style="{ThemeResource BodyTextBlockStyle}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                HorizontalAlignment="Center"
+                Margin="0,40" />
 
-        <TextBlock
-            Text="No downloads yet."
-            Visibility="{x:Bind ViewModel.EmptyVisibility, Mode=OneWay}"
-            Style="{ThemeResource BodyTextBlockStyle}"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            HorizontalAlignment="Center"
-            Margin="0,40" />
-    </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </Page>

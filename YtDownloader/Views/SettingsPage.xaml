@@ -65,6 +65,9 @@
                         <ToggleSwitch
                             Header="Remember last used output folder"
                             IsOn="{x:Bind ViewModel.RememberOutputFolder, Mode=TwoWay}" />
+                        <ToggleSwitch
+                            Header="Show storage diagnostics on History page"
+                            IsOn="{x:Bind ViewModel.ShowDiagnostics, Mode=TwoWay}" />
                     </StackPanel>
                 </Border>
             </StackPanel>

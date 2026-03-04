@@ -12,9 +12,16 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _updateStatus  = string.Empty;
     [ObservableProperty] private bool   _isUpdating    = false;
 
-    [ObservableProperty] private bool _showNotifications  = true;
-    [ObservableProperty] private bool _autoCheckUpdates   = true;
+    [ObservableProperty] private bool _showNotifications    = true;
+    [ObservableProperty] private bool _autoCheckUpdates     = true;
     [ObservableProperty] private bool _rememberOutputFolder = true;
+
+    // Backed by the shared AppSettings singleton so HistoryPage can react to it
+    public bool ShowDiagnostics
+    {
+        get => AppSettings.Instance.ShowDiagnostics;
+        set => AppSettings.Instance.ShowDiagnostics = value;
+    }
 
     [ObservableProperty]
     private string _defaultFolder = System.IO.Path.Combine(
@@ -32,22 +39,15 @@ public partial class SettingsViewModel : ObservableObject
         IsUpdating   = true;
         UpdateStatus = "Checking…";
 
-        // Subscribe to status messages from the updater
         YtDlpUpdaterService.StatusChanged += OnUpdateStatus;
-
         await YtDlpUpdaterService.CheckAndUpdateAsync();
-
         YtDlpUpdaterService.StatusChanged -= OnUpdateStatus;
 
-        // Refresh displayed version in case it changed
         YtDlpVersion = await YtDlpService.GetVersionAsync("yt-dlp") ?? "Not found";
         IsUpdating   = false;
     }
 
-    private void OnUpdateStatus(string message)
-    {
-        UpdateStatus = message;
-    }
+    private void OnUpdateStatus(string message) => UpdateStatus = message;
 
     [RelayCommand]
     private async Task BrowseDefaultFolder()

@@ -12,10 +12,26 @@ public class HistoryService
 {
     public static readonly HistoryService Instance = new();
 
-    private static readonly string StoragePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "YtDownloader",
-        "history.json");
+    // Computed fresh each call — avoids all static initializer ordering issues.
+    // Path.Combine with a null first arg was the source of the NullReferenceException.
+    public static string StoragePath
+    {
+        get
+        {
+            var localAppData =
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+            if (string.IsNullOrEmpty(localAppData))
+                localAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA") ?? AppContext.BaseDirectory;
+
+            return Path.Combine(localAppData, "YtDownloader", "history.json");
+        }
+    }
+
+    // Diagnostics
+    public string? LastLoadError { get; private set; }
+    public string? LastSaveError { get; private set; }
+    public string? LastLoadInfo  { get; private set; }
 
     public ObservableCollection<DownloadHistoryItem> Items { get; } = new();
 
@@ -40,25 +56,74 @@ public class HistoryService
     {
         try
         {
-            if (!File.Exists(StoragePath)) return;
-            var json = File.ReadAllText(StoragePath);
-            var items = JsonSerializer.Deserialize<List<DownloadHistoryItem>>(json);
-            if (items is null) return;
+            var path = StoragePath;   // single call — consistent for the whole load
+            LastLoadInfo = $"Resolved path: {path}";
+
+            if (!File.Exists(path))
+            {
+                LastLoadInfo += " | File not found — starting with empty history.";
+                return;
+            }
+
+            var json = File.ReadAllText(path);
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                LastLoadInfo += " | File is empty.";
+                return;
+            }
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var items = JsonSerializer.Deserialize<List<DownloadHistoryItem>>(json, options);
+
+            if (items is null)
+            {
+                LastLoadInfo += " | Deserialized list was null.";
+                return;
+            }
+
+            int loaded = 0, skipped = 0;
             foreach (var item in items)
+            {
+                if (item is null) { skipped++; continue; }
+
+                item.Title      ??= string.Empty;
+                item.Url        ??= string.Empty;
+                item.OutputPath ??= string.Empty;
+                item.Format     ??= string.Empty;
+                item.Quality    ??= string.Empty;
+
                 Items.Add(item);
+                loaded++;
+            }
+
+            LastLoadInfo += $" | Loaded {loaded} item(s), skipped {skipped} null entries.";
         }
-        catch { /* Silently ignore corrupt history */ }
+        catch (Exception ex)
+        {
+            LastLoadError = $"{ex.GetType().Name}: {ex.Message}";
+        }
     }
 
     private void Save()
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(StoragePath)!);
+            var path = StoragePath;
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
             var json = JsonSerializer.Serialize(Items.ToList(),
                 new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(StoragePath, json);
+
+            var tempPath = path + ".tmp";
+            File.WriteAllText(tempPath, json);
+            File.Move(tempPath, path, overwrite: true);
+
+            LastSaveError = null;
         }
-        catch { /* Silently ignore save errors */ }
+        catch (Exception ex)
+        {
+            LastSaveError = $"{ex.GetType().Name}: {ex.Message}";
+        }
     }
 }
