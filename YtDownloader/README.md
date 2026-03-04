@@ -1,100 +1,26 @@
-# YT Downloader
+# YtDownloader
 
-A clean, user-friendly Windows desktop app for downloading YouTube videos and audio.  
-Built with **WinUI 3 (Windows App SDK)** and **.NET 8**, powered by **yt-dlp** and **ffmpeg**.
-
----
-
-## 🛠 Prerequisites
-
-Install these once on your machine:
-
-| Tool | Download |
-|------|----------|
-| Visual Studio 2022 (Community is free) | https://visualstudio.microsoft.com/ |
-| Windows App SDK workload | Included in VS installer — select **"Windows application development"** |
-| .NET 8 SDK | https://dotnet.microsoft.com/download/dotnet/8.0 |
+The main WinUI 3 application project. For full setup, build, and architecture 
+documentation see the [root README](../README.md).
 
 ---
 
-## 📦 Bundled Binaries (Required)
+## Assets (Required before building)
 
-yt-dlp and ffmpeg must be placed in the `Assets/` folder before building.  
-They ship with the app so users never need to install anything.
+Two binaries must be placed in `Assets/` before the project will run:
 
-1. **yt-dlp.exe** → Download from https://github.com/yt-dlp/yt-dlp/releases/latest  
-   Get `yt-dlp.exe` and place it in `YtDownloader/Assets/yt-dlp.exe`
-
-2. **ffmpeg.exe** → Download from https://www.gyan.dev/ffmpeg/builds/  
-   Get the "essentials" build, unzip, and copy `ffmpeg.exe` to `YtDownloader/Assets/ffmpeg.exe`
+1. **yt-dlp.exe** → https://github.com/yt-dlp/yt-dlp/releases/latest
+2. **ffmpeg.exe** → https://www.gyan.dev/ffmpeg/builds/ (essentials build)
 
 ---
 
-## 🚀 Running the Project
-
-```bash
-# Clone / open the folder in Visual Studio 2022
-# Then press F5 or click the green Run button
-
-# Or from the terminal:
-dotnet build
-dotnet run
-```
-
----
-
-## 📁 Project Structure
-
+## Project Structure
 ```
 YtDownloader/
-├── Assets/
-│   ├── yt-dlp.exe          ← You download this (see above)
-│   └── ffmpeg.exe          ← You download this (see above)
-│
-├── Models/
-│   ├── DownloadOptions.cs      Options passed to yt-dlp
-│   ├── DownloadProgress.cs     Progress update data
-│   └── DownloadHistoryItem.cs  A completed download record
-│
-├── Services/
-│   ├── YtDlpService.cs         Runs yt-dlp as a subprocess, parses progress
-│   ├── HistoryService.cs       Stores download history (persisted to AppData)
-│   ├── AppSettings.cs          Persisted app-wide settings (theme, diagnostics)
-│   └── YtDlpUpdaterService.cs  Silently updates the bundled yt-dlp binary
-│
-├── ViewModels/
-│   ├── DownloadViewModel.cs    All logic for the Download page
-│   ├── HistoryViewModel.cs     History page state
-│   └── SettingsViewModel.cs    Settings page state
-│
-├── Views/
-│   ├── DownloadPage.xaml       Main download UI
-│   ├── HistoryPage.xaml        Past downloads list
-│   └── SettingsPage.xaml       Preferences + dependency versions
-│
-├── Themes/
-│   └── Generic.xaml        App-wide style overrides
-│
-├── App.xaml / App.xaml.cs      Application entry point
-├── MainWindow.xaml / .cs       Shell window with NavigationView
-└── YtDownloader.csproj         Project file
+├── Assets/             yt-dlp.exe and ffmpeg.exe go here
+├── Models/             Plain data classes
+├── Services/           yt-dlp subprocess, history, settings, auto-updater
+├── ViewModels/         MVVM logic for each page
+├── Views/              XAML pages
+└── Themes/             App-wide style overrides
 ```
-
----
-
-## 🏗 Architecture
-
-- **MVVM** via `CommunityToolkit.Mvvm` — ViewModels use `[ObservableProperty]` and `[RelayCommand]` source generators to eliminate boilerplate
-- **yt-dlp subprocess** — `YtDlpService` launches yt-dlp.exe, reads stdout line-by-line, and parses progress with a regex
-- **Dispatcher** — progress callbacks marshal back to the UI thread via `DispatcherQueue`
-- **Persistent history** — `HistoryService` serializes to JSON in `%LocalAppData%\YtDownloader\history.json`
-- **Persistent settings** — `AppSettings` serializes to JSON in `%LocalAppData%\YtDownloader\settings.json`
-
----
-
-## 🔮 Suggested Next Steps (v2)
-
-- [ ] Download queue for multiple URLs
-- [ ] Auto-update yt-dlp binary in-app
-- [ ] Subtitle download support
-- [ ] Download again from history
