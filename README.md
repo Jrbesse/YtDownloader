@@ -1,7 +1,7 @@
 # YT Downloader
 
 A clean, no-install Windows desktop app for downloading YouTube videos and audio.
-Built with **WinUI 3 (Windows App SDK)** and **.NET 8**, powered by **yt-dlp** and **ffmpeg**.
+Built with Claude Sonnet 4.6 Free, using **WinUI 3 (Windows App SDK)** and **.NET 8**, powered by **yt-dlp** and **ffmpeg**.
 
 ---
 
