@@ -223,6 +223,7 @@ public class YtDlpService
         {
             var path = tool == "yt-dlp" ? YtDlpPath : FfmpegPath;
             var arg  = tool == "yt-dlp" ? "--version" : "-version";
+            
             var psi = new ProcessStartInfo
             {
                 FileName = path,
@@ -234,6 +235,11 @@ public class YtDlpService
             using var p = Process.Start(psi)!;
             var output = await p.StandardOutput.ReadLineAsync();
             await p.WaitForExitAsync();
+            if (output.Split(' ').Length > 3) //Return only the relevant part of 'ffmpeg -version'
+            {
+                string[] getFfmpegVersion = output.Split(" ");
+                output = getFfmpegVersion[2];
+            }
             return output?.Trim();
         }
         catch
