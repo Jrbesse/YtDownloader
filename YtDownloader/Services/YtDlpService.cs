@@ -77,12 +77,21 @@ public class YtDlpService
             case "mp3":
                 parts.Add("-x --audio-format mp3 --audio-quality 0");
                 break;
-            case "webm":
-                parts.Add("-f bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]");
+
+            case "wav":
+                parts.Add("-x --audio-format wav");
                 break;
-            default:
-                var qualityFilter = MapQualityToFilter(options.Quality);
-                parts.Add($"-f \"{qualityFilter}\"");
+
+            case "avi":
+                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
+                parts.Add("--merge-output-format avi");
+                parts.Add("--postprocessor-args \"ffmpeg:-c:v mpeg4 -c:a mp3 -b:a 192k\"");
+                break;
+
+            default: // mp4
+                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
+                parts.Add("--merge-output-format mp4");
+                parts.Add("--postprocessor-args \"ffmpeg:-c:a aac -b:a 192k\"");
                 break;
         }
 

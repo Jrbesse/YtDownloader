@@ -12,7 +12,7 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
-        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(800, 800));
+        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(800, 950));
         this.AppWindow.SetIcon("app.ico");
 
         // Set theme on RootGrid synchronously before first render

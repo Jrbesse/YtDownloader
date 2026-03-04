@@ -122,20 +122,15 @@
 
             <!-- ── FORMAT SELECTOR ── -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Format" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <RadioButton
-                        Content="MP4 (Video)"
-                        GroupName="Format"
-                        IsChecked="{x:Bind ViewModel.IsMp4Selected, Mode=TwoWay}" />
-                    <RadioButton
-                        Content="MP3 (Audio only)"
-                        GroupName="Format"
-                        IsChecked="{x:Bind ViewModel.IsMp3Selected, Mode=TwoWay}" />
-                    <RadioButton
-                        Content="WebM (Smaller size)"
-                        GroupName="Format"
-                        IsChecked="{x:Bind ViewModel.IsWebMSelected, Mode=TwoWay}" />
+                <StackPanel Spacing="8">
+                    <RadioButton Content="MP4 (Video)" GroupName="Format"
+                 IsChecked="{x:Bind ViewModel.IsMp4Selected, Mode=TwoWay}" />
+                    <RadioButton Content="AVI (Video, max compatibility)" GroupName="Format"
+                 IsChecked="{x:Bind ViewModel.IsAviSelected, Mode=TwoWay}" />
+                    <RadioButton Content="MP3 (Audio only)" GroupName="Format"
+                 IsChecked="{x:Bind ViewModel.IsMp3Selected, Mode=TwoWay}" />
+                    <RadioButton Content="WAV (Audio only, uncompressed)" GroupName="Format"
+                 IsChecked="{x:Bind ViewModel.IsWavSelected, Mode=TwoWay}" />
                 </StackPanel>
             </StackPanel>
 

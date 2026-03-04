@@ -92,14 +92,24 @@ public partial class DownloadViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(QualityVisibility))]
+    private bool _isAviSelected;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(QualityVisibility))]
     private bool _isMp3Selected;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(QualityVisibility))]
-    private bool _isWebMSelected;
+    private bool _isWavSelected;
 
-    public Visibility QualityVisibility => IsMp3Selected ? Visibility.Collapsed : Visibility.Visible;
-    public string SelectedFormat => IsMp3Selected ? "mp3" : IsWebMSelected ? "webm" : "mp4";
+    // Hide quality selector for audio-only formats
+    public Visibility QualityVisibility =>
+        (IsMp3Selected || IsWavSelected) ? Visibility.Collapsed : Visibility.Visible;
+
+    public string SelectedFormat =>
+        IsMp3Selected ? "mp3" :
+        IsAviSelected ? "avi" :
+        IsWavSelected ? "wav" : "mp4";
 
     // ── Quality ──────────────────────────────────────────────────────────────
 
