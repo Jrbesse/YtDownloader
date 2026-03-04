@@ -16,8 +16,7 @@ public partial class App : Application
     {
         MainWindow = new MainWindow();
 
-        // Apply the persisted theme before the window is shown
-        ApplyTheme(AppSettings.Instance.Theme);
+
 
         // Re-apply immediately if the user changes it in Settings
         AppSettings.Instance.PropertyChanged += (_, e) =>
@@ -28,19 +27,23 @@ public partial class App : Application
 
         MainWindow.Activate();
 
+        // Apply the persisted theme before the window is shown
+        ApplyTheme(AppSettings.Instance.Theme);
+
         _ = Task.Run(() => YtDlpUpdaterService.CheckAndUpdateAsync());
     }
 
     internal static void ApplyTheme(string theme)
     {
-        if (MainWindow?.Content is FrameworkElement root)
+        if (MainWindow is null) return;
+
+        var elementTheme = theme switch
         {
-            root.RequestedTheme = theme switch
-            {
-                "Light"  => ElementTheme.Light,
-                "Dark"   => ElementTheme.Dark,
-                _        => ElementTheme.Default,   // "System"
-            };
-        }
+            "Light" => ElementTheme.Light,
+            "Dark" => ElementTheme.Dark,
+            _ => ElementTheme.Default,
+        };
+
+        MainWindow.RootElement.RequestedTheme = elementTheme;
     }
 }

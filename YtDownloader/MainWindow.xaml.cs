@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using YtDownloader.Services;
 using YtDownloader.Views;
 
 namespace YtDownloader;
@@ -11,14 +12,23 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Set minimum window size and a comfortable default
-        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(800, 640));
+        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(800, 800));
         this.AppWindow.SetIcon("app.ico");
 
-        // Navigate to the Download page on startup
+        // Set theme on RootGrid synchronously before first render
+        RootGrid.RequestedTheme = AppSettings.Instance.Theme switch
+        {
+            "Light" => ElementTheme.Light,
+            "Dark" => ElementTheme.Dark,
+            _ => ElementTheme.Default,
+        };
+
         ContentFrame.Navigate(typeof(DownloadPage));
         NavView.SelectedItem = NavView.MenuItems[0];
     }
+
+
+    public FrameworkElement RootElement => RootGrid;
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {

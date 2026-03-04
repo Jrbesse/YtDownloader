@@ -6,8 +6,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="YT Downloader">
-
-    <Grid RequestedTheme="Dark">
+    <Grid x:Name="RootGrid">
+        <!-- Pane background manually painted so it follows our theme -->
+        <Rectangle
+            x:Name="PaneBackground"
+            Width="200"
+            HorizontalAlignment="Left"
+            Fill="{ThemeResource ApplicationPageBackgroundThemeBrush}" />
         <NavigationView
             x:Name="NavView"
             PaneDisplayMode="Left"
@@ -16,7 +21,6 @@
             OpenPaneLength="200"
             IsBackButtonVisible="Collapsed"
             SelectionChanged="NavView_SelectionChanged">
-
             <NavigationView.MenuItems>
                 <NavigationViewItem
                     Tag="download"
@@ -27,7 +31,6 @@
                     Content="History"
                     Icon="List" />
             </NavigationView.MenuItems>
-
             <Frame x:Name="ContentFrame" />
         </NavigationView>
     </Grid>
