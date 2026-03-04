@@ -11,6 +11,6 @@
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
     <!-- Use the same icon as the main app if you have one -->
-    <!-- <ApplicationIcon>app.ico</ApplicationIcon> -->
+	<ApplicationIcon>../YtDownloader/app.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>

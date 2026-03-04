@@ -13,6 +13,7 @@ public sealed partial class MainWindow : Window
 
         // Set minimum window size and a comfortable default
         this.AppWindow.Resize(new Windows.Graphics.SizeInt32(800, 640));
+        this.AppWindow.SetIcon("app.ico");
 
         // Navigate to the Download page on startup
         ContentFrame.Navigate(typeof(DownloadPage));

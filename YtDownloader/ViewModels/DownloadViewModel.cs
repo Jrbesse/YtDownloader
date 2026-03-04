@@ -17,8 +17,9 @@ public partial class DownloadViewModel : ObservableObject
     private readonly HistoryService _history = HistoryService.Instance;
     private readonly DispatcherQueue _dispatcher = DispatcherQueue.GetForCurrentThread();
 
-    // Debounce: wait this long after the user stops typing before fetching info
+    // Cancellation for preview fetches and active downloads
     private CancellationTokenSource? _previewCts;
+    private CancellationTokenSource? _downloadCts;
     private const int PreviewDebounceMs = 800;
 
     // ── URL & Detection ──────────────────────────────────────────────────────
@@ -44,57 +45,7 @@ public partial class DownloadViewModel : ObservableObject
     [ObservableProperty] private string _channelName = string.Empty;
     [ObservableProperty] private string _videoDuration = string.Empty;
 
-    // ThumbnailUrl is set as a string; DownloadPage.xaml.cs converts it to BitmapImage
     [ObservableProperty] private string _thumbnailUrl = string.Empty;
-
-    //private async Task FetchPreviewDebounced(string url)
-    //{
-    //    // Cancel any in-flight fetch
-    //    _previewCts?.Cancel();
-    //    _previewCts = new CancellationTokenSource();
-    //    var ct = _previewCts.Token;
-
-    //    // Hide old preview immediately
-    //    VideoInfoVisibility = Visibility.Collapsed;
-    //    PreviewLoadingVisibility = Visibility.Collapsed;
-
-    //    if (string.IsNullOrWhiteSpace(url) || IsPlaylist) return;
-
-    //    // Simple sanity check — must look like a YouTube URL
-    //    if (!url.Contains("youtube.com/") && !url.Contains("youtu.be/")) return;
-
-    //    try
-    //    {
-    //        // Debounce: wait for user to stop typing
-    //        await Task.Delay(PreviewDebounceMs, ct);
-
-    //        // Show spinner
-    //        PreviewLoadingVisibility = Visibility.Visible;
-
-    //        var info = await YtDlpService.FetchVideoInfoAsync(url, ct);
-
-    //        if (ct.IsCancellationRequested) return;
-
-    //        PreviewLoadingVisibility = Visibility.Collapsed;
-
-    //        if (info is null) return;
-
-    //        VideoTitle    = info.Title;
-    //        ChannelName   = info.Channel;
-    //        VideoDuration = info.DurationFormatted;
-    //        ThumbnailUrl  = info.ThumbnailUrl;
-
-    //        VideoInfoVisibility = Visibility.Visible;
-    //    }
-    //    catch (TaskCanceledException)
-    //    {
-    //        PreviewLoadingVisibility = Visibility.Collapsed;
-    //    }
-    //    catch
-    //    {
-    //        PreviewLoadingVisibility = Visibility.Collapsed;
-    //    }
-    //}
 
     private async Task FetchPreviewDebounced(string url)
     {
@@ -102,55 +53,32 @@ public partial class DownloadViewModel : ObservableObject
         _previewCts = new CancellationTokenSource();
         var ct = _previewCts.Token;
 
-        VideoInfoVisibility = Visibility.Collapsed;
+        VideoInfoVisibility      = Visibility.Collapsed;
         PreviewLoadingVisibility = Visibility.Collapsed;
 
-        if (string.IsNullOrWhiteSpace(url) || IsPlaylist)
-        {
-            //System.Diagnostics.Debug.WriteLine("[Preview] Skipped: empty or playlist");
-            return;
-        }
-
-        if (!url.Contains("youtube.com/") && !url.Contains("youtu.be/"))
-        {
-            //System.Diagnostics.Debug.WriteLine($"[Preview] Skipped: URL didn't pass sanity check: '{url}'");
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(url) || IsPlaylist) return;
+        if (!url.Contains("youtube.com/") && !url.Contains("youtu.be/")) return;
 
         try
         {
             await Task.Delay(PreviewDebounceMs, ct);
-
             PreviewLoadingVisibility = Visibility.Visible;
-            //System.Diagnostics.Debug.WriteLine($"[Preview] Fetching info for: {url}");
 
             var info = await YtDlpService.FetchVideoInfoAsync(url, ct);
-
-            //System.Diagnostics.Debug.WriteLine($"[Preview] Result: {(info is null ? "NULL" : $"Title='{info.Title}', Thumb='{info.ThumbnailUrl}'")}");
-
             if (ct.IsCancellationRequested) return;
 
             PreviewLoadingVisibility = Visibility.Collapsed;
-
             if (info is null) return;
 
-            VideoTitle = info.Title;
-            ChannelName = info.Channel;
+            VideoTitle    = info.Title;
+            ChannelName   = info.Channel;
             VideoDuration = info.DurationFormatted;
-            ThumbnailUrl = info.ThumbnailUrl;
+            ThumbnailUrl  = info.ThumbnailUrl;
 
             VideoInfoVisibility = Visibility.Visible;
         }
-        catch (TaskCanceledException)
-        {
-            System.Diagnostics.Debug.WriteLine("[Preview] Cancelled");
-            PreviewLoadingVisibility = Visibility.Collapsed;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[Preview] Exception: {ex.Message}");
-            PreviewLoadingVisibility = Visibility.Collapsed;
-        }
+        catch (TaskCanceledException) { PreviewLoadingVisibility = Visibility.Collapsed; }
+        catch                         { PreviewLoadingVisibility = Visibility.Collapsed; }
     }
 
     // ── Format ───────────────────────────────────────────────────────────────
@@ -168,7 +96,6 @@ public partial class DownloadViewModel : ObservableObject
     private bool _isWebMSelected;
 
     public Visibility QualityVisibility => IsMp3Selected ? Visibility.Collapsed : Visibility.Visible;
-
     public string SelectedFormat => IsMp3Selected ? "mp3" : IsWebMSelected ? "webm" : "mp4";
 
     // ── Quality ──────────────────────────────────────────────────────────────
@@ -186,16 +113,24 @@ public partial class DownloadViewModel : ObservableObject
     private string _outputFolder = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
 
-    // ── Progress State ────────────────────────────────────────────────────────
+    // ── Progress & Download State ─────────────────────────────────────────────
 
     [ObservableProperty] private Visibility _progressVisibility = Visibility.Collapsed;
-    [ObservableProperty] private Visibility _doneVisibility = Visibility.Collapsed;
-    [ObservableProperty] private string _progressStatus = string.Empty;
+    [ObservableProperty] private Visibility _cancelVisibility   = Visibility.Collapsed;
+    [ObservableProperty] private Visibility _doneVisibility     = Visibility.Collapsed;
+    [ObservableProperty] private string _progressStatus  = string.Empty;
     [ObservableProperty] private string _progressPercent = string.Empty;
-    [ObservableProperty] private string _progressDetail = string.Empty;
+    [ObservableProperty] private string _progressDetail  = string.Empty;
     [ObservableProperty] private double _progressValue;
-    [ObservableProperty] private bool _isProgressIndeterminate;
+    [ObservableProperty] private bool   _isProgressIndeterminate;
     [ObservableProperty] private string _doneMessage = string.Empty;
+    [ObservableProperty] private Visibility _downloadVisibility = Visibility.Visible;
+
+
+    // ── yt-dlp update state ───────────────────────────────────────────────────
+
+    [ObservableProperty] private bool _updateBannerVisibility = false;
+    [ObservableProperty] private string _updateBannerText = string.Empty;
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
@@ -222,17 +157,24 @@ public partial class DownloadViewModel : ObservableObject
             OutputFolder = folder.Path;
     }
 
-    [RelayCommand]
+    private bool CanDownload() => !YtDlpUpdateState.IsSwappingFile;
+
+    [RelayCommand(CanExecute = nameof(CanDownload))]
     private async Task Download()
     {
         if (string.IsNullOrWhiteSpace(Url)) return;
 
-        DoneVisibility         = Visibility.Collapsed;
-        ProgressVisibility     = Visibility.Visible;
+        // Create a fresh cancellation token for this download
+        _downloadCts = new CancellationTokenSource();
+
+        DoneVisibility          = Visibility.Collapsed;
+        ProgressVisibility      = Visibility.Visible;
+        CancelVisibility        = Visibility.Visible;
+        DownloadVisibility      = Visibility.Collapsed;
         IsProgressIndeterminate = true;
-        ProgressStatus         = "Fetching video info…";
-        ProgressDetail         = "Connecting to YouTube…";
-        ProgressValue          = 0;
+        ProgressStatus          = "Fetching video info…";
+        ProgressDetail          = "Connecting to YouTube…";
+        ProgressValue           = 0;
 
         try
         {
@@ -245,8 +187,10 @@ public partial class DownloadViewModel : ObservableObject
                 IsPlaylist   = IsPlaylist,
             };
 
-            await _ytDlp.DownloadAsync(options, OnProgress);
+            await _ytDlp.DownloadAsync(options, OnProgress, _downloadCts.Token);
 
+            CancelVisibility   = Visibility.Visible;
+            DownloadVisibility = Visibility.Collapsed;
             ProgressVisibility = Visibility.Collapsed;
             DoneVisibility     = Visibility.Visible;
             DoneMessage        = $"Saved to {OutputFolder}";
@@ -260,11 +204,34 @@ public partial class DownloadViewModel : ObservableObject
                 CompletedAt = DateTime.Now,
             });
         }
+        catch (OperationCanceledException)
+        {
+            // User hit Cancel — reset to a clean ready state
+            CancelVisibility   = Visibility.Visible;
+            DownloadVisibility = Visibility.Collapsed;
+            ProgressVisibility = Visibility.Collapsed;
+            ProgressStatus     = string.Empty;
+            ProgressDetail     = string.Empty;
+            ProgressValue      = 0;
+        }
         catch (Exception ex)
         {
+            CancelVisibility   = Visibility.Visible;
+            DownloadVisibility = Visibility.Collapsed;
             ProgressVisibility = Visibility.Collapsed;
             ProgressStatus     = $"Error: {ex.Message}";
         }
+        finally
+        {
+            _downloadCts?.Dispose();
+            _downloadCts = null;
+        }
+    }
+
+    [RelayCommand]
+    private void CancelDownload()
+    {
+        _downloadCts?.Cancel();
     }
 
     [RelayCommand]
@@ -274,15 +241,17 @@ public partial class DownloadViewModel : ObservableObject
     [RelayCommand]
     private void Reset()
     {
-        Url                 = string.Empty;
-        VideoTitle          = string.Empty;
-        ChannelName         = string.Empty;
-        VideoDuration       = string.Empty;
-        ThumbnailUrl        = string.Empty;
-        VideoInfoVisibility = Visibility.Collapsed;
-        ProgressVisibility  = Visibility.Collapsed;
-        DoneVisibility      = Visibility.Collapsed;
-        ProgressValue       = 0;
+        Url                  = string.Empty;
+        VideoTitle           = string.Empty;
+        ChannelName          = string.Empty;
+        VideoDuration        = string.Empty;
+        ThumbnailUrl         = string.Empty;
+        VideoInfoVisibility  = Visibility.Collapsed;
+        ProgressVisibility   = Visibility.Collapsed;
+        CancelVisibility     = Visibility.Visible;
+        DownloadVisibility   = Visibility.Collapsed;
+        DoneVisibility       = Visibility.Collapsed;
+        ProgressValue        = 0;
     }
 
     // ── Progress callback ─────────────────────────────────────────────────────
@@ -296,6 +265,35 @@ public partial class DownloadViewModel : ObservableObject
             ProgressDetail  = progress.Detail;
             ProgressValue   = progress.Percent;
             ProgressPercent = progress.IsIndeterminate ? "" : $"{progress.Percent:0}%";
+        });
+    }
+
+    public DownloadViewModel()
+    {
+        YtDlpUpdateState.StateChanged += OnUpdateStateChanged;
+    }
+
+    private void OnUpdateStateChanged()
+    {
+        _dispatcher.TryEnqueue(() =>
+        {
+            if (YtDlpUpdateState.IsSwappingFile)
+            {
+                UpdateBannerText = "Applying yt-dlp update, please wait…";
+                UpdateBannerVisibility = YtDlpUpdateState.IsUpdating || YtDlpUpdateState.IsSwappingFile;
+            }
+            else if (YtDlpUpdateState.IsUpdating)
+            {
+                UpdateBannerText = "Downloading yt-dlp update in the background…";
+                UpdateBannerVisibility = YtDlpUpdateState.IsUpdating || YtDlpUpdateState.IsSwappingFile;
+            }
+            else
+            {
+                UpdateBannerVisibility = YtDlpUpdateState.IsUpdating || YtDlpUpdateState.IsSwappingFile;
+            }
+
+            // Notify the Download command to re-evaluate CanExecute
+            DownloadCommand.NotifyCanExecuteChanged();
         });
     }
 }

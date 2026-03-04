@@ -166,15 +166,32 @@
                 </Grid>
             </StackPanel>
 
-            <!-- ── DOWNLOAD BUTTON ── -->
-            <Button
-                Content="Download"
-                Command="{x:Bind ViewModel.DownloadCommand}"
-                Style="{ThemeResource AccentButtonStyle}"
-                HorizontalAlignment="Stretch"
-                Height="44"
-                FontSize="15"
-                FontWeight="SemiBold" />
+            <!-- ── UPDATE BANNER ── -->
+            <InfoBar
+                IsOpen="{x:Bind ViewModel.UpdateBannerVisibility, Mode=OneWay}"
+                IsClosable="False"
+                Severity="Informational"
+                Title="{x:Bind ViewModel.UpdateBannerText, Mode=OneWay}" />
+
+            <!-- ── DOWNLOAD / CANCEL BUTTONS ── -->
+            <Grid>
+                <Button
+                    Content="Download"
+                    Command="{x:Bind ViewModel.DownloadCommand}"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    Height="44"
+                    FontSize="15"
+                    FontWeight="SemiBold"
+                    Visibility="{x:Bind ViewModel.DownloadVisibility, Mode=OneWay}" />
+                <Button
+                    Content="Cancel Download"
+                    Command="{x:Bind ViewModel.CancelDownloadCommand}"
+                    HorizontalAlignment="Stretch"
+                    Height="44"
+                    FontSize="15"
+                    Visibility="{x:Bind ViewModel.CancelVisibility, Mode=OneWay}" />
+            </Grid>
 
             <!-- ── PROGRESS ── -->
             <StackPanel

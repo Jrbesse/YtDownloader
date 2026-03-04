@@ -7,11 +7,13 @@ namespace YtDownloader.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    [ObservableProperty] private string _ytDlpVersion = "Checking…";
+    [ObservableProperty] private string _ytDlpVersion  = "Checking…";
     [ObservableProperty] private string _ffmpegVersion = "Checking…";
+    [ObservableProperty] private string _updateStatus  = string.Empty;
+    [ObservableProperty] private bool   _isUpdating    = false;
 
-    [ObservableProperty] private bool _showNotifications = true;
-    [ObservableProperty] private bool _autoCheckUpdates = true;
+    [ObservableProperty] private bool _showNotifications  = true;
+    [ObservableProperty] private bool _autoCheckUpdates   = true;
     [ObservableProperty] private bool _rememberOutputFolder = true;
 
     [ObservableProperty]
@@ -20,14 +22,31 @@ public partial class SettingsViewModel : ObservableObject
 
     public async void LoadVersionsAsync()
     {
-        YtDlpVersion = await YtDlpService.GetVersionAsync("yt-dlp") ?? "Not found";
+        YtDlpVersion  = await YtDlpService.GetVersionAsync("yt-dlp")  ?? "Not found";
         FfmpegVersion = await YtDlpService.GetVersionAsync("ffmpeg") ?? "Not found";
     }
 
     [RelayCommand]
-    private void CheckUpdates()
+    private async Task CheckUpdates()
     {
-        LoadVersionsAsync();
+        IsUpdating   = true;
+        UpdateStatus = "Checking…";
+
+        // Subscribe to status messages from the updater
+        YtDlpUpdaterService.StatusChanged += OnUpdateStatus;
+
+        await YtDlpUpdaterService.CheckAndUpdateAsync();
+
+        YtDlpUpdaterService.StatusChanged -= OnUpdateStatus;
+
+        // Refresh displayed version in case it changed
+        YtDlpVersion = await YtDlpService.GetVersionAsync("yt-dlp") ?? "Not found";
+        IsUpdating   = false;
+    }
+
+    private void OnUpdateStatus(string message)
+    {
+        UpdateStatus = message;
     }
 
     [RelayCommand]

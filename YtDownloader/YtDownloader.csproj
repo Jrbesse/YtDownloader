@@ -14,6 +14,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+	<ApplicationIcon>app.ico</ApplicationIcon>
+	<PackageIcon>app.ico</PackageIcon>
+	<Version>1.2.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +35,13 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="app.ico">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 </Project>
 
