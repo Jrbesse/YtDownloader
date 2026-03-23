@@ -1,8 +1,8 @@
 # ============================================================
-#  publish.ps1
+#  cleanpublish2.ps1
 #  Run from the YtDownloader project folder (where .csproj lives)
-#  Usage:  .\publish.ps1
-#  Usage:  .\publish.ps1 -Version "1.2.0"
+#  Usage:  .\cleanpublish2.ps1
+#  Usage:  .\cleanpublish2.ps1 -Version "1.2.0"
 #
 #  Output structure inside the ZIP:
 #    YtDownloader.exe          <- clean launcher (no console flash)
