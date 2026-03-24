@@ -65,20 +65,25 @@ jobs:
           if (Test-Path $appOutput) {
             Copy-Item -Path "$appOutput/*" -Destination $appSubDir -Recurse -Force
           } else {
-            # Fallback: search for publish output
-            $appOutput = Get-ChildItem -Path "YtDownloader/bin" -Recurse -Filter "YtDownloader.exe" |
-                         Where-Object { $_.FullName -notlike "*YtDownloaderLauncher*" } |
-                         Select-Object -First 1
-            if ($appOutput) {
-              Copy-Item -Path (Split-Path $appOutput.FullName) -Destination $appSubDir -Recurse -Force
+            # Fallback: search for the exe in the build tree
+            $appExe = Get-ChildItem -Path "YtDownloader/bin" -Recurse -Filter "YtDownloader.exe" |
+                      Where-Object { $_.FullName -notlike "*YtDownloaderLauncher*" } |
+                      Select-Object -First 1
+            if (-not $appExe) {
+              Write-Error "Could not locate YtDownloader.exe in build output. Aborting."
+              exit 1
             }
+            # Copy contents of the exe's directory (not the directory itself)
+            Copy-Item -Path "$(Split-Path $appExe.FullName)/*" -Destination $appSubDir -Recurse -Force
           }
 
           # Copy the launcher exe to the top level
           $launcherExe = "publish/launcher/YtDownloader.exe"
-          if (Test-Path $launcherExe) {
-            Copy-Item -Path $launcherExe -Destination "$stagingDir/YtDownloader.exe"
+          if (-not (Test-Path $launcherExe)) {
+            Write-Error "Could not locate published launcher at '$launcherExe'. Aborting."
+            exit 1
           }
+          Copy-Item -Path $launcherExe -Destination "$stagingDir/YtDownloader.exe"
 
           # Create the ZIP
           $zipName = "YtDownloader-v$version-win-x64.zip"

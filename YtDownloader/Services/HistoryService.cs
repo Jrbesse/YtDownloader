@@ -10,7 +10,8 @@ namespace YtDownloader.Services;
 /// </summary>
 public class HistoryService
 {
-    public static readonly HistoryService Instance = new();
+    private static readonly Lazy<HistoryService> _lazyInstance = new(() => new HistoryService());
+    public static HistoryService Instance => _lazyInstance.Value;
 
     // Computed fresh each call — avoids all static initializer ordering issues.
     // Path.Combine with a null first arg was the source of the NullReferenceException.

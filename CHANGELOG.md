@@ -7,6 +7,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+
 - Comprehensive unit test suite (`YtDownloader.Tests`)
 - GitHub Actions CI workflow — tests and WinUI build run on every push and PR
 - GitHub Actions release workflow — tagged `v*.*.*` pushes auto-create a GitHub Release with ZIP artifact
@@ -14,27 +15,31 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - PR template with testing checklist
 
 ### Changed
+
 - `YtDlpService.BuildArguments` and `ParseProgress` promoted to `internal` for testability
 - `BrowserDetectionService.MapProgIdToBrowser` extracted as `internal static` method
 - `HistoryService` and `AppSettings` gained internal test constructors with path injection
 
 ---
 
-## [1.2.0] - 2025-??-??
+## [1.2.0] - 2026-03-24
 
 ### Added
+
 - Verbose logging toggle in Settings — displays raw yt-dlp output during downloads
 - Exception details written to verbose log on download failure
 - Auto-detect default browser cookies in simple mode (transparent cookie pass-through)
 
 ### Fixed
+
 - Silent yt-dlp error reporting — stderr is now captured and surfaced to the user
 
 ---
 
-## [1.1.0] - 2025-??-??
+## [1.1.0] - 2026-03-23
 
 ### Added
+
 - Advanced mode with batch download queue
 - SponsorBlock removal integration (`--sponsorblock-remove all`)
 - Browser cookie selection for age-restricted content
@@ -48,6 +53,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - AtomicParsley bundled for MP3 thumbnail embedding
 
 ### Changed
+
 - Navigation redesigned to NavigationView with Advanced page toggle in Settings
 
 ---
@@ -55,6 +61,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [1.0.0] - Initial release
 
 ### Added
+
 - Single video and playlist download (MP4, MP3, AVI, WAV)
 - Quality selection (Best available through 360p)
 - Real-time progress display with speed and ETA

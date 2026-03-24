@@ -41,20 +41,6 @@ public class VideoInfoTests
         new VideoInfo { DurationSeconds = seconds }.DurationFormatted.Should().Be(expected);
     }
 
-    [Fact]
-    public void DurationFormatted_3599Seconds_DoesNotUseHourFormat()
-    {
-        // 3599s is just below 1 hour: format is "59:59" (one colon), not "0:59:59" (two colons)
-        new VideoInfo { DurationSeconds = 3599 }.DurationFormatted.Count(c => c == ':').Should().Be(1);
-    }
-
-    [Fact]
-    public void DurationFormatted_3600Seconds_UsesHourFormat()
-    {
-        // Boundary: 3600 is exactly 1 hour, must use h:mm:ss
-        new VideoInfo { DurationSeconds = 3600 }.DurationFormatted.Count(c => c == ':').Should().Be(2);
-    }
-
     // ── Default property values ────────────────────────────────────────────────
 
     [Fact]

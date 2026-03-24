@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using YtDownloader.Models;
 
@@ -60,26 +61,47 @@ public class DownloadHistoryItemTests
     }
 
     // ── DateText ───────────────────────────────────────────────────────────────
+    // DateText uses culture-sensitive formatting (MMM d, yyyy; h:mm tt).
+    // Pin the culture to en-US in each test so assertions are deterministic
+    // regardless of the machine locale.
 
     [Fact]
     public void DateText_Today_ReturnsTodayFormat()
     {
-        var item = new DownloadHistoryItem { CompletedAt = DateTime.Now };
-        item.DateText.Should().StartWith("Today,");
+        var saved = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("en-US");
+            var item = new DownloadHistoryItem { CompletedAt = DateTime.Now };
+            item.DateText.Should().StartWith("Today,");
+        }
+        finally { CultureInfo.CurrentCulture = saved; }
     }
 
     [Fact]
     public void DateText_PastDate_ReturnsMonthDayYear()
     {
-        var item = new DownloadHistoryItem { CompletedAt = new DateTime(2024, 1, 15) };
-        item.DateText.Should().Be("Jan 15, 2024");
+        var saved = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("en-US");
+            var item = new DownloadHistoryItem { CompletedAt = new DateTime(2024, 1, 15) };
+            item.DateText.Should().Be("Jan 15, 2024");
+        }
+        finally { CultureInfo.CurrentCulture = saved; }
     }
 
     [Fact]
     public void DateText_TodayAtMidnight_StillReturnsToday()
     {
-        var item = new DownloadHistoryItem { CompletedAt = DateTime.Today };
-        item.DateText.Should().StartWith("Today,");
+        var saved = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("en-US");
+            var item = new DownloadHistoryItem { CompletedAt = DateTime.Today };
+            item.DateText.Should().StartWith("Today,");
+        }
+        finally { CultureInfo.CurrentCulture = saved; }
     }
 
     [Fact]

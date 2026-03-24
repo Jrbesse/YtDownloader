@@ -12,7 +12,8 @@ namespace YtDownloader.Services;
 /// </summary>
 public partial class AppSettings : ObservableObject
 {
-    public static readonly AppSettings Instance = new();
+    private static readonly Lazy<AppSettings> _lazyInstance = new(() => new AppSettings());
+    public static AppSettings Instance => _lazyInstance.Value;
 
     private readonly string? _overridePath;
 

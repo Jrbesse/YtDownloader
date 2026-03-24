@@ -161,9 +161,10 @@ public class HistoryServiceTests : IDisposable
     public void Load_CorruptJson_DoesNotThrow_StartsEmpty()
     {
         File.WriteAllText(_tempPath, "NOT VALID JSON {{{{");
-        var act = () => CreateService();
+        HistoryService? svc = null;
+        var act = () => { svc = CreateService(); };
         act.Should().NotThrow();
-        CreateService().Items.Should().BeEmpty();
+        svc!.Items.Should().BeEmpty();
     }
 
     [Fact]

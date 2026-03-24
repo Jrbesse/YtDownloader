@@ -1,5 +1,4 @@
 using FluentAssertions;
-using System.Text.Json;
 using YtDownloader.Services;
 
 namespace YtDownloader.Tests;
@@ -158,18 +157,20 @@ public class AppSettingsTests : IDisposable
     public void Load_CorruptJson_DoesNotThrow_FallsBackToDefaults()
     {
         File.WriteAllText(_tempPath, "NOT VALID JSON }{");
-        var act = () => CreateSettings();
+        AppSettings? s = null;
+        var act = () => { s = CreateSettings(); };
         act.Should().NotThrow();
-        CreateSettings().Theme.Should().Be("System");
+        s!.Theme.Should().Be("System");
     }
 
     [Fact]
     public void Load_EmptyFile_DoesNotThrow_FallsBackToDefaults()
     {
         File.WriteAllText(_tempPath, string.Empty);
-        var act = () => CreateSettings();
+        AppSettings? s = null;
+        var act = () => { s = CreateSettings(); };
         act.Should().NotThrow();
-        CreateSettings().VerboseLogging.Should().BeFalse();
+        s!.VerboseLogging.Should().BeFalse();
     }
 
     [Fact]
