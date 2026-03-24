@@ -84,7 +84,7 @@ public partial class AppSettings : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(settingsPath))
             throw new ArgumentException("Settings path must not be null or whitespace.", nameof(settingsPath));
-        _overridePath = settingsPath;
+        _overridePath = Path.GetFullPath(settingsPath);
         Load();
     }
 

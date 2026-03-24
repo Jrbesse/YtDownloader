@@ -48,7 +48,7 @@ public class HistoryService
     {
         if (string.IsNullOrWhiteSpace(storagePath))
             throw new ArgumentException("Storage path must not be null or whitespace.", nameof(storagePath));
-        _overridePath = storagePath;
+        _overridePath = Path.GetFullPath(storagePath);
         Load();
     }
 
