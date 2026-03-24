@@ -35,6 +35,14 @@
                                 VerticalAlignment="Center"
                                 Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
                         </Grid>
+                        <Grid>
+                            <TextBlock Text="AtomicParsley" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                            <TextBlock
+                                Text="{x:Bind ViewModel.AtomicParsleyVersion, Mode=OneWay}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                        </Grid>
                         <Button
                             Content="Check for Updates"
                             Command="{x:Bind ViewModel.CheckUpdatesCommand}" />
@@ -88,6 +96,9 @@
                     Padding="16">
                     <StackPanel Spacing="16">
                         <ToggleSwitch
+                            Header="Show a notification when a download completes"
+                            IsOn="{x:Bind ViewModel.ShowNotifications, Mode=TwoWay}" />
+                        <ToggleSwitch
                             Header="Automatically check for yt-dlp updates on startup"
                             IsOn="{x:Bind ViewModel.AutoCheckUpdates, Mode=TwoWay}" />
                         <ToggleSwitch
@@ -100,34 +111,38 @@
                 </Border>
             </StackPanel>
 
-            <!-- Default folder -->
+            <!-- Advanced Mode Card -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Default Download Folder" Style="{ThemeResource SubtitleTextBlockStyle}" />
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox
-                        Grid.Column="0"
-                        IsReadOnly="True"
-                        Text="{x:Bind ViewModel.DefaultFolder, Mode=OneWay}" />
-                    <Button
-                        Grid.Column="1"
-                        Content="Browse…"
-                        Command="{x:Bind ViewModel.BrowseDefaultFolderCommand}" />
-                </Grid>
+                <TextBlock Text="Advanced Mode" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <Border
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                    <StackPanel Spacing="10">
+                        <ToggleSwitch
+                            Header="Enable Advanced Mode"
+                            IsOn="{x:Bind ViewModel.IsAdvancedMode, Mode=TwoWay}"
+                            OnContent="On" OffContent="Off" />
+                        <TextBlock
+                            Text="Adds an Advanced page with multi-URL queue, extended formats (MKV, FLAC, OPUS, M4A…), codec control, SponsorBlock, subtitles, custom filename templates, and more."
+                            Style="{ThemeResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
             <!-- About -->
             <StackPanel Spacing="4">
                 <TextBlock Text="About" Style="{ThemeResource SubtitleTextBlockStyle}" />
                 <TextBlock
-                    Text="{x:Bind versionValue}"
+                    Text="{x:Bind VersionValue}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <TextBlock
-                    Text="Powered by yt-dlp and ffmpeg. For personal use only."
+                    Text="Powered by yt-dlp, ffmpeg, and AtomicParsley. For personal use only."
                     Style="{ThemeResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>

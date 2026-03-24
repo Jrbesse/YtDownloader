@@ -126,6 +126,12 @@ public partial class DownloadViewModel : ObservableObject
     private string _outputFolder = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
 
+    partial void OnOutputFolderChanged(string value)
+    {
+        if (AppSettings.Instance.RememberOutputFolder)
+            AppSettings.Instance.LastOutputFolder = value;
+    }
+
     // ── Progress & Download State ─────────────────────────────────────────────
 
     [ObservableProperty] private Visibility _progressVisibility = Visibility.Collapsed;
@@ -189,13 +195,15 @@ public partial class DownloadViewModel : ObservableObject
 
         try
         {
+            var isAudio = SelectedFormat is "mp3" or "wav";
             var options = new DownloadOptions
             {
-                Url          = Url,
-                Format       = SelectedFormat,
-                Quality      = SelectedQuality,
-                OutputFolder = OutputFolder,
-                IsPlaylist   = IsPlaylist,
+                Url           = Url,
+                Format        = SelectedFormat,
+                Quality       = SelectedQuality,
+                OutputFolder  = OutputFolder,
+                IsPlaylist    = IsPlaylist,
+                EmbedMetadata = isAudio,
             };
 
             await _ytDlp.DownloadAsync(options, OnProgress, _downloadCts.Token);
@@ -205,6 +213,9 @@ public partial class DownloadViewModel : ObservableObject
             ProgressVisibility = Visibility.Collapsed;
             DoneVisibility     = Visibility.Visible;
             DoneMessage        = $"Saved to {OutputFolder}";
+
+            var completedTitle = string.IsNullOrEmpty(VideoTitle) ? "Download" : VideoTitle;
+            NotificationService.SendDownloadComplete(completedTitle, OutputFolder);
 
             _history.Add(new DownloadHistoryItem
             {
@@ -279,6 +290,13 @@ public partial class DownloadViewModel : ObservableObject
 
     public DownloadViewModel()
     {
+        // Restore last used folder if the setting is enabled
+        if (AppSettings.Instance.RememberOutputFolder
+            && !string.IsNullOrEmpty(AppSettings.Instance.LastOutputFolder))
+        {
+            _outputFolder = AppSettings.Instance.LastOutputFolder;
+        }
+
         YtDlpUpdateState.StateChanged += OnUpdateStateChanged;
     }
 

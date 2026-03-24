@@ -6,7 +6,7 @@ namespace YtDownloader.Services;
 /// <summary>
 /// Persisted app-wide settings. Saved to
 /// %LocalAppData%\YtDownloader\settings.json on every change.
-/// 
+///
 /// Add new settings as [ObservableProperty] fields and call Save()
 /// in the corresponding partial On___Changed method.
 /// </summary>
@@ -31,16 +31,38 @@ public partial class AppSettings : ObservableObject
 
     // ── Settings properties ───────────────────────────────────────────────────
 
-    [ObservableProperty] private bool _showDiagnostics = false;
-    [ObservableProperty] private string _theme = "System";   // "Light" | "Dark" | "System"
+    [ObservableProperty] private bool   _showDiagnostics     = false;
+    [ObservableProperty] private string _theme               = "System"; // "Light" | "Dark" | "System"
+    [ObservableProperty] private bool   _isAdvancedMode      = false;
+    [ObservableProperty] private bool   _showNotifications   = true;
+    [ObservableProperty] private bool   _autoCheckUpdates    = true;
+    [ObservableProperty] private bool   _rememberOutputFolder = true;
+    [ObservableProperty] private string _lastOutputFolder    = string.Empty;
 
     // Auto-save whenever any setting changes
-    partial void OnShowDiagnosticsChanged(bool value) => Save();
-    partial void OnThemeChanged(string value) => Save();
+    partial void OnShowDiagnosticsChanged(bool value)      => Save();
+    partial void OnThemeChanged(string value)              => Save();
+    partial void OnIsAdvancedModeChanged(bool value)       => Save();
+    partial void OnShowNotificationsChanged(bool value)    => Save();
+    partial void OnAutoCheckUpdatesChanged(bool value)     => Save();
+    partial void OnRememberOutputFolderChanged(bool value) => Save();
+    partial void OnLastOutputFolderChanged(string value)   => Save();
 
     // ── Serialization model ───────────────────────────────────────────────────
 
-    private record SettingsData(bool ShowDiagnostics, string Theme);
+    // Non-positional class so adding/removing fields never breaks existing JSON files.
+    // System.Text.Json matches by property name, so old files missing new keys will
+    // simply use the defaults defined below.
+    private class SettingsData
+    {
+        public bool   ShowDiagnostics      { get; init; } = false;
+        public string Theme                { get; init; } = "System";
+        public bool   IsAdvancedMode       { get; init; } = false;
+        public bool   ShowNotifications    { get; init; } = true;
+        public bool   AutoCheckUpdates     { get; init; } = true;
+        public bool   RememberOutputFolder { get; init; } = true;
+        public string LastOutputFolder     { get; init; } = string.Empty;
+    }
 
     // ── Load / Save ───────────────────────────────────────────────────────────
 
@@ -59,12 +81,18 @@ public partial class AppSettings : ObservableObject
             var json = File.ReadAllText(path);
             if (string.IsNullOrWhiteSpace(json)) return;
 
-            var data = JsonSerializer.Deserialize<SettingsData>(json);
+            var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var data = JsonSerializer.Deserialize<SettingsData>(json, opts);
             if (data is null) return;
 
             // Set backing fields directly to avoid triggering Save() during load
-            _showDiagnostics = data.ShowDiagnostics;
-            _theme           = data.Theme ?? "System";
+            _showDiagnostics      = data.ShowDiagnostics;
+            _theme                = data.Theme ?? "System";
+            _isAdvancedMode       = data.IsAdvancedMode;
+            _showNotifications    = data.ShowNotifications;
+            _autoCheckUpdates     = data.AutoCheckUpdates;
+            _rememberOutputFolder = data.RememberOutputFolder;
+            _lastOutputFolder     = data.LastOutputFolder ?? string.Empty;
         }
         catch
         {
@@ -79,7 +107,17 @@ public partial class AppSettings : ObservableObject
             var path = SettingsPath;
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
-            var data = new SettingsData(ShowDiagnostics, Theme);
+            var data = new SettingsData
+            {
+                ShowDiagnostics      = ShowDiagnostics,
+                Theme                = Theme,
+                IsAdvancedMode       = IsAdvancedMode,
+                ShowNotifications    = ShowNotifications,
+                AutoCheckUpdates     = AutoCheckUpdates,
+                RememberOutputFolder = RememberOutputFolder,
+                LastOutputFolder     = LastOutputFolder,
+            };
+
             var json = JsonSerializer.Serialize(data,
                 new JsonSerializerOptions { WriteIndented = true });
 
