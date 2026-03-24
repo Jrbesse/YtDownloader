@@ -69,7 +69,7 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Dependency versions ───────────────────────────────────────────────────
 
-    public async void LoadVersionsAsync()
+    public async Task LoadVersionsAsync()
     {
         YtDlpVersion           = await YtDlpService.GetVersionAsync("yt-dlp")  ?? "Not found";
         FfmpegVersion          = await YtDlpService.GetVersionAsync("ffmpeg")  ?? "Not found";

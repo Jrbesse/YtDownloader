@@ -138,7 +138,7 @@
             <StackPanel Spacing="4">
                 <TextBlock Text="About" Style="{ThemeResource SubtitleTextBlockStyle}" />
                 <TextBlock
-                    Text="{x:Bind versionValue}"
+                    Text="{x:Bind VersionValue}"
                     Style="{ThemeResource CaptionTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <TextBlock

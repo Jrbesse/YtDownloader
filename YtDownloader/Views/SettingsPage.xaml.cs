@@ -7,7 +7,7 @@ public sealed partial class SettingsPage : Page
 {
     public SettingsViewModel ViewModel { get; } = new SettingsViewModel();
 
-    public string versionValue = typeof(SettingsPage).Assembly
+    public string VersionValue { get; } = typeof(SettingsPage).Assembly
         .GetName()
         .Version?
         .ToString() ?? string.Empty;
@@ -15,6 +15,6 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         InitializeComponent();
-        ViewModel.LoadVersionsAsync();
+        _ = ViewModel.LoadVersionsAsync();
     }
 }

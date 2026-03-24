@@ -205,7 +205,7 @@ public partial class AdvancedViewModel : ObservableObject
                 OutputFolder         = OutputFolder,
                 EmbedMetadata        = EmbedMetadata,
                 VideoCodec           = SelectedVideoCodec == "(Auto)" ? null : SelectedVideoCodec,
-                AudioBitrate         = SelectedAudioBitrate,
+                AudioBitrate         = VideoFormats.Contains(SelectedFormat) ? SelectedAudioBitrate : null,
                 RemoveSponsorBlock   = EnableSponsorBlock,
                 CookiesFromBrowser   = SelectedBrowser == "(None)" ? null : SelectedBrowser,
                 PlaylistStart        = playlistStart,
@@ -214,7 +214,7 @@ public partial class AdvancedViewModel : ObservableObject
                 WriteThumbnail       = WriteThumbnail,
                 WriteSubtitles       = SubtitlesEnabled && !EmbedSubtitles,
                 EmbedSubtitles       = SubtitlesEnabled && EmbedSubtitles,
-                WriteAutoSubtitles   = WriteAutoSubtitles,
+                WriteAutoSubtitles   = SubtitlesEnabled && WriteAutoSubtitles,
                 SubtitleLanguage     = SubtitleLanguage,
                 CustomOutputTemplate = string.IsNullOrWhiteSpace(OutputTemplate)
                                        || OutputTemplate == "%(title)s.%(ext)s"

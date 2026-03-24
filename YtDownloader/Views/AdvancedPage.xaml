@@ -8,329 +8,359 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="20" Padding="32,24">
+    <!--
+        Outer Grid: two rows.
+        Row 0 (*) — all form controls in their own ScrollViewer.
+        Row 1 (260) — queue section; ListView owns scrolling so virtualization works.
+    -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="260" />
+        </Grid.RowDefinitions>
 
-            <!-- Page Title -->
-            <TextBlock
-                Text="Advanced Download"
-                Style="{ThemeResource TitleTextBlockStyle}" />
+        <!-- ── ROW 0 : scrollable form controls ── -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="20" Padding="32,24">
 
-            <!-- ── URLS ── -->
-            <StackPanel Spacing="6">
-                <TextBlock Text="URLs (one per line)" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                <TextBox
-                    PlaceholderText="https://www.youtube.com/watch?v=…"
-                    Text="{x:Bind ViewModel.UrlsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    AcceptsReturn="True"
-                    Height="120"
-                    TextWrapping="Wrap"
-                    VerticalScrollBarVisibility="Auto" />
+                <!-- Page Title -->
                 <TextBlock
-                    Text="Paste one URL per line. All items will be processed sequentially."
-                    Style="{ThemeResource CaptionTextBlockStyle}"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+                    Text="Advanced Download"
+                    Style="{ThemeResource TitleTextBlockStyle}" />
 
-            <!-- ── FORMAT & QUALITY ── -->
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Spacing="6">
-                    <TextBlock Text="Format" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                    <ComboBox
-                        ItemsSource="{x:Bind ViewModel.AvailableFormats, Mode=OneWay}"
-                        SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}"
-                        HorizontalAlignment="Stretch" />
+                <!-- ── URLS ── -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="URLs (one per line)" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                    <TextBox
+                        PlaceholderText="https://www.youtube.com/watch?v=…"
+                        Text="{x:Bind ViewModel.UrlsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        AcceptsReturn="True"
+                        Height="120"
+                        TextWrapping="Wrap"
+                        VerticalScrollBarVisibility="Auto" />
+                    <TextBlock
+                        Text="Paste one URL per line. All items will be processed sequentially."
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
 
+                <!-- ── FORMAT & QUALITY ── -->
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="6">
+                        <TextBlock Text="Format" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <ComboBox
+                            ItemsSource="{x:Bind ViewModel.AvailableFormats, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}"
+                            HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Spacing="6"
+                        Visibility="{x:Bind ViewModel.QualityVisibility, Mode=OneWay}">
+                        <TextBlock Text="Quality" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <ComboBox
+                            ItemsSource="{x:Bind ViewModel.AvailableQualities, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.SelectedQuality, Mode=TwoWay}"
+                            HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- ── CODEC CONTROL ── -->
                 <StackPanel
-                    Grid.Column="1"
-                    Spacing="6"
-                    Visibility="{x:Bind ViewModel.QualityVisibility, Mode=OneWay}">
-                    <TextBlock Text="Quality" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                    <ComboBox
-                        ItemsSource="{x:Bind ViewModel.AvailableQualities, Mode=OneWay}"
-                        SelectedItem="{x:Bind ViewModel.SelectedQuality, Mode=TwoWay}"
-                        HorizontalAlignment="Stretch" />
+                    Spacing="12"
+                    Visibility="{x:Bind ViewModel.VideoCodecVisibility, Mode=OneWay}">
+                    <TextBlock Text="Codec &amp; Bitrate" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                    <Border
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Video codec" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                <ComboBox
+                                    ItemsSource="{x:Bind ViewModel.VideoCodecs, Mode=OneWay}"
+                                    SelectedItem="{x:Bind ViewModel.SelectedVideoCodec, Mode=TwoWay}"
+                                    HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="Audio bitrate" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                <ComboBox
+                                    ItemsSource="{x:Bind ViewModel.AudioBitrates, Mode=OneWay}"
+                                    SelectedItem="{x:Bind ViewModel.SelectedAudioBitrate, Mode=TwoWay}"
+                                    HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </StackPanel>
-            </Grid>
 
-            <!-- ── CODEC CONTROL ── -->
-            <StackPanel
-                Spacing="12"
-                Visibility="{x:Bind ViewModel.VideoCodecVisibility, Mode=OneWay}">
-                <TextBlock Text="Codec &amp; Bitrate" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                <Border
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="16">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Spacing="6">
-                            <TextBlock Text="Video codec" Style="{ThemeResource CaptionTextBlockStyle}" />
-                            <ComboBox
-                                ItemsSource="{x:Bind ViewModel.VideoCodecs, Mode=OneWay}"
-                                SelectedItem="{x:Bind ViewModel.SelectedVideoCodec, Mode=TwoWay}"
-                                HorizontalAlignment="Stretch" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="6">
-                            <TextBlock Text="Audio bitrate" Style="{ThemeResource CaptionTextBlockStyle}" />
-                            <ComboBox
-                                ItemsSource="{x:Bind ViewModel.AudioBitrates, Mode=OneWay}"
-                                SelectedItem="{x:Bind ViewModel.SelectedAudioBitrate, Mode=TwoWay}"
-                                HorizontalAlignment="Stretch" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </StackPanel>
+                <!-- ── OPTIONS CARD ── -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Options" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                    <Border
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                        <StackPanel Spacing="16">
 
-            <!-- ── OPTIONS CARD ── -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Options" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                <Border
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="16">
-                    <StackPanel Spacing="16">
+                            <!-- SponsorBlock -->
+                            <ToggleSwitch
+                                Header="Remove sponsored segments (SponsorBlock)"
+                                IsOn="{x:Bind ViewModel.EnableSponsorBlock, Mode=TwoWay}"
+                                OnContent="On" OffContent="Off" />
 
-                        <!-- SponsorBlock -->
-                        <ToggleSwitch
-                            Header="Remove sponsored segments (SponsorBlock)"
-                            IsOn="{x:Bind ViewModel.EnableSponsorBlock, Mode=TwoWay}"
-                            OnContent="On" OffContent="Off" />
+                            <!-- Browser cookies -->
+                            <StackPanel Spacing="6">
+                                <TextBlock
+                                    Text="Use browser cookies"
+                                    Style="{ThemeResource BodyTextBlockStyle}" />
+                                <TextBlock
+                                    Text="Allows downloading age-restricted or members-only videos"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <ComboBox
+                                    ItemsSource="{x:Bind ViewModel.Browsers, Mode=OneWay}"
+                                    SelectedItem="{x:Bind ViewModel.SelectedBrowser, Mode=TwoWay}"
+                                    MinWidth="160" />
+                            </StackPanel>
 
-                        <!-- Browser cookies -->
-                        <StackPanel Spacing="6">
-                            <TextBlock
-                                Text="Use browser cookies"
-                                Style="{ThemeResource BodyTextBlockStyle}" />
-                            <TextBlock
-                                Text="Allows downloading age-restricted or members-only videos"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <ComboBox
-                                ItemsSource="{x:Bind ViewModel.Browsers, Mode=OneWay}"
-                                SelectedItem="{x:Bind ViewModel.SelectedBrowser, Mode=TwoWay}"
-                                MinWidth="160" />
-                        </StackPanel>
-
-                        <!-- Playlist range -->
-                        <StackPanel Spacing="6">
-                            <TextBlock
-                                Text="Playlist range"
-                                Style="{ThemeResource BodyTextBlockStyle}" />
-                            <TextBlock
-                                Text="Leave empty to download all items"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <StackPanel Orientation="Horizontal" Spacing="12">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="Start" Style="{ThemeResource CaptionTextBlockStyle}" />
-                                    <TextBox
-                                        Text="{x:Bind ViewModel.PlaylistStartText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        PlaceholderText="1"
-                                        Width="80"
-                                        InputScope="Number" />
-                                </StackPanel>
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="End" Style="{ThemeResource CaptionTextBlockStyle}" />
-                                    <TextBox
-                                        Text="{x:Bind ViewModel.PlaylistEndText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        PlaceholderText="10"
-                                        Width="80"
-                                        InputScope="Number" />
+                            <!-- Playlist range -->
+                            <StackPanel Spacing="6">
+                                <TextBlock
+                                    Text="Playlist range"
+                                    Style="{ThemeResource BodyTextBlockStyle}" />
+                                <TextBlock
+                                    Text="Leave empty to download all items"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Start" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                        <TextBox
+                                            Text="{x:Bind ViewModel.PlaylistStartText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            PlaceholderText="1"
+                                            Width="80"
+                                            InputScope="Number" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="End" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                        <TextBox
+                                            Text="{x:Bind ViewModel.PlaylistEndText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            PlaceholderText="10"
+                                            Width="80"
+                                            InputScope="Number" />
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
-                        </StackPanel>
 
-                        <!-- Thumbnails -->
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Thumbnails" Style="{ThemeResource BodyTextBlockStyle}" />
-                            <ToggleSwitch
-                                Header="Embed thumbnail into file"
-                                IsOn="{x:Bind ViewModel.EmbedThumbnail, Mode=TwoWay}"
-                                OnContent="On" OffContent="Off" />
-                            <ToggleSwitch
-                                Header="Save thumbnail as separate image"
-                                IsOn="{x:Bind ViewModel.WriteThumbnail, Mode=TwoWay}"
-                                OnContent="On" OffContent="Off" />
-                        </StackPanel>
-
-                        <!-- Subtitles -->
-                        <StackPanel Spacing="8">
-                            <ToggleSwitch
-                                Header="Download subtitles"
-                                IsOn="{x:Bind ViewModel.SubtitlesEnabled, Mode=TwoWay}"
-                                OnContent="On" OffContent="Off" />
-
-                            <StackPanel
-                                Spacing="8"
-                                Margin="24,0,0,0"
-                                Visibility="{x:Bind ViewModel.SubtitleOptionsVisibility, Mode=OneWay}">
+                            <!-- Thumbnails -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Thumbnails" Style="{ThemeResource BodyTextBlockStyle}" />
                                 <ToggleSwitch
-                                    Header="Embed subtitles in file (instead of separate .srt)"
-                                    IsOn="{x:Bind ViewModel.EmbedSubtitles, Mode=TwoWay}"
+                                    Header="Embed thumbnail into file"
+                                    IsOn="{x:Bind ViewModel.EmbedThumbnail, Mode=TwoWay}"
                                     OnContent="On" OffContent="Off" />
                                 <ToggleSwitch
-                                    Header="Include auto-generated subtitles"
-                                    IsOn="{x:Bind ViewModel.WriteAutoSubtitles, Mode=TwoWay}"
+                                    Header="Save thumbnail as separate image"
+                                    IsOn="{x:Bind ViewModel.WriteThumbnail, Mode=TwoWay}"
                                     OnContent="On" OffContent="Off" />
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="Language code (e.g. en, es, fr, de)" Style="{ThemeResource CaptionTextBlockStyle}" />
-                                    <TextBox
-                                        Text="{x:Bind ViewModel.SubtitleLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        PlaceholderText="en"
-                                        Width="120"
-                                        HorizontalAlignment="Left" />
+                            </StackPanel>
+
+                            <!-- Subtitles -->
+                            <StackPanel Spacing="8">
+                                <ToggleSwitch
+                                    Header="Download subtitles"
+                                    IsOn="{x:Bind ViewModel.SubtitlesEnabled, Mode=TwoWay}"
+                                    OnContent="On" OffContent="Off" />
+
+                                <StackPanel
+                                    Spacing="8"
+                                    Margin="24,0,0,0"
+                                    Visibility="{x:Bind ViewModel.SubtitleOptionsVisibility, Mode=OneWay}">
+                                    <ToggleSwitch
+                                        Header="Embed subtitles in file (instead of separate .srt)"
+                                        IsOn="{x:Bind ViewModel.EmbedSubtitles, Mode=TwoWay}"
+                                        OnContent="On" OffContent="Off" />
+                                    <ToggleSwitch
+                                        Header="Include auto-generated subtitles"
+                                        IsOn="{x:Bind ViewModel.WriteAutoSubtitles, Mode=TwoWay}"
+                                        OnContent="On" OffContent="Off" />
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Language code (e.g. en, es, fr, de)" Style="{ThemeResource CaptionTextBlockStyle}" />
+                                        <TextBox
+                                            Text="{x:Bind ViewModel.SubtitleLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            PlaceholderText="en"
+                                            Width="120"
+                                            HorizontalAlignment="Left" />
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
+
+                            <!-- Metadata -->
+                            <ToggleSwitch
+                                Header="Embed metadata (title, channel, upload date)"
+                                IsOn="{x:Bind ViewModel.EmbedMetadata, Mode=TwoWay}"
+                                OnContent="On" OffContent="Off" />
+
                         </StackPanel>
+                    </Border>
+                </StackPanel>
 
-                        <!-- Metadata -->
-                        <ToggleSwitch
-                            Header="Embed metadata (title, channel, upload date)"
-                            IsOn="{x:Bind ViewModel.EmbedMetadata, Mode=TwoWay}"
-                            OnContent="On" OffContent="Off" />
+                <!-- ── OUTPUT ── -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Output" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                    <Border
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                        <StackPanel Spacing="12">
 
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-
-            <!-- ── OUTPUT ── -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Output" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                <Border
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="16">
-                    <StackPanel Spacing="12">
-
-                        <!-- Filename template -->
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Filename template" Style="{ThemeResource BodyTextBlockStyle}" />
-                            <TextBlock
-                                Text="yt-dlp template variables: %(title)s, %(uploader)s, %(id)s, %(ext)s, %(playlist_index)s"
-                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                TextWrapping="Wrap" />
-                            <TextBox
-                                Text="{x:Bind ViewModel.OutputTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                PlaceholderText="%(title)s.%(ext)s" />
-                        </StackPanel>
-
-                        <!-- Save to folder -->
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Save to folder" Style="{ThemeResource BodyTextBlockStyle}" />
-                            <Grid ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <!-- Filename template -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Filename template" Style="{ThemeResource BodyTextBlockStyle}" />
+                                <TextBlock
+                                    Text="yt-dlp template variables: %(title)s, %(uploader)s, %(id)s, %(ext)s, %(playlist_index)s"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextWrapping="Wrap" />
                                 <TextBox
-                                    Grid.Column="0"
-                                    IsReadOnly="True"
-                                    Text="{x:Bind ViewModel.OutputFolder, Mode=OneWay}"
-                                    VerticalAlignment="Center" />
-                                <Button
-                                    Grid.Column="1"
-                                    Content="Browse…"
-                                    Command="{x:Bind ViewModel.BrowseFolderCommand}"
-                                    VerticalAlignment="Center" />
-                            </Grid>
+                                    Text="{x:Bind ViewModel.OutputTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    PlaceholderText="%(title)s.%(ext)s" />
+                            </StackPanel>
+
+                            <!-- Save to folder -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Save to folder" Style="{ThemeResource BodyTextBlockStyle}" />
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox
+                                        Grid.Column="0"
+                                        IsReadOnly="True"
+                                        Text="{x:Bind ViewModel.OutputFolder, Mode=OneWay}"
+                                        VerticalAlignment="Center" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Content="Browse…"
+                                        Command="{x:Bind ViewModel.BrowseFolderCommand}"
+                                        VerticalAlignment="Center" />
+                                </Grid>
+                            </StackPanel>
+
                         </StackPanel>
+                    </Border>
+                </StackPanel>
 
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+                <!-- ── START / STOP QUEUE BUTTONS ── -->
+                <Grid>
+                    <Button
+                        Content="Start Queue"
+                        Command="{x:Bind ViewModel.StartQueueCommand}"
+                        Style="{ThemeResource AccentButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Height="44"
+                        FontSize="15"
+                        FontWeight="SemiBold" />
+                </Grid>
 
-            <!-- ── START / STOP QUEUE BUTTONS ── -->
-            <Grid>
                 <Button
-                    Content="Start Queue"
-                    Command="{x:Bind ViewModel.StartQueueCommand}"
-                    Style="{ThemeResource AccentButtonStyle}"
+                    Content="Stop Queue"
+                    Command="{x:Bind ViewModel.StopQueueCommand}"
                     HorizontalAlignment="Stretch"
-                    Height="44"
-                    FontSize="15"
-                    FontWeight="SemiBold" />
-            </Grid>
+                    Height="40"
+                    Visibility="{x:Bind ViewModel.StopVisibility, Mode=OneWay}" />
 
-            <Button
-                Content="Stop Queue"
-                Command="{x:Bind ViewModel.StopQueueCommand}"
-                HorizontalAlignment="Stretch"
-                Height="40"
-                Visibility="{x:Bind ViewModel.StopVisibility, Mode=OneWay}" />
-
-            <!-- ── DOWNLOAD QUEUE ── -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Queue" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                <ListView
-                    ItemsSource="{x:Bind ViewModel.Queue, Mode=OneWay}"
-                    SelectionMode="None"
-                    IsItemClickEnabled="False">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="0" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:AdvancedDownloadQueueItem">
-                            <Border
-                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="12"
-                                Margin="0,4">
-                                <StackPanel Spacing="6">
-                                    <!-- URL + status -->
-                                    <Grid>
-                                        <TextBlock
-                                            Text="{x:Bind Url, Mode=OneWay}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            TextTrimming="CharacterEllipsis"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center" />
-                                        <TextBlock
-                                            Text="{x:Bind StatusText, Mode=OneWay}"
-                                            Style="{ThemeResource CaptionTextBlockStyle}"
-                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center" />
-                                    </Grid>
-                                    <!-- Progress bar -->
-                                    <ProgressBar
-                                        Value="{x:Bind Percent, Mode=OneWay}"
-                                        Maximum="100"
-                                        IsIndeterminate="{x:Bind IsIndeterminate, Mode=OneWay}" />
-                                    <!-- Detail text -->
-                                    <TextBlock
-                                        Text="{x:Bind Detail, Mode=OneWay}"
-                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
             </StackPanel>
+        </ScrollViewer>
 
-        </StackPanel>
-    </ScrollViewer>
+        <!-- ── ROW 1 : queue section — ListView owns its own scrolling ── -->
+        <Grid Grid.Row="1" Padding="32,8,32,16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                Grid.Row="0"
+                Text="Queue"
+                Margin="0,0,0,8"
+                Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+            <ListView
+                Grid.Row="1"
+                ItemsSource="{x:Bind ViewModel.Queue, Mode=OneWay}"
+                SelectionMode="None"
+                IsItemClickEnabled="False"
+                ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AdvancedDownloadQueueItem">
+                        <Border
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12"
+                            Margin="0,4">
+                            <StackPanel Spacing="6">
+                                <!-- URL + status: two columns so they never overlap -->
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Text="{x:Bind Url, Mode=OneWay}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        TextTrimming="CharacterEllipsis"
+                                        VerticalAlignment="Center" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{x:Bind StatusText, Mode=OneWay}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        VerticalAlignment="Center" />
+                                </Grid>
+                                <!-- Progress bar -->
+                                <ProgressBar
+                                    Value="{x:Bind Percent, Mode=OneWay}"
+                                    Maximum="100"
+                                    IsIndeterminate="{x:Bind IsIndeterminate, Mode=OneWay}" />
+                                <!-- Detail text -->
+                                <TextBlock
+                                    Text="{x:Bind Detail, Mode=OneWay}"
+                                    Style="{ThemeResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+    </Grid>
 </Page>

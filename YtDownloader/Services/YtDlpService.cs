@@ -27,16 +27,17 @@ public class YtDlpService
         Action<DownloadProgress> onProgress,
         CancellationToken ct = default)
     {
-        var args = BuildArguments(options);
         var psi = new ProcessStartInfo
         {
             FileName               = YtDlpPath,
-            Arguments              = args,
             RedirectStandardOutput = true,
             RedirectStandardError  = true,
             UseShellExecute        = false,
             CreateNoWindow         = true,
         };
+
+        foreach (var arg in BuildArguments(options))
+            psi.ArgumentList.Add(arg);
 
         using var process = new Process { StartInfo = psi, EnableRaisingEvents = true };
 
@@ -61,7 +62,16 @@ public class YtDlpService
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
-        await process.WaitForExitAsync(ct);
+        try
+        {
+            await process.WaitForExitAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            // Kill the child process tree so yt-dlp and ffmpeg don't run orphaned
+            try { process.Kill(entireProcessTree: true); } catch { /* best-effort */ }
+            throw;
+        }
 
         if (process.ExitCode != 0)
             throw new Exception($"yt-dlp exited with code {process.ExitCode}. Check the URL and try again.");
@@ -69,57 +79,58 @@ public class YtDlpService
         onProgress(new DownloadProgress { Status = "Done!", Percent = 100, IsIndeterminate = false });
     }
 
-    private static string BuildArguments(DownloadOptions options)
+    private static List<string> BuildArguments(DownloadOptions options)
     {
-        var parts      = new List<string>();
+        var args       = new List<string>();
         var ffmpegArgs = new List<string>(); // merged into a single --postprocessor-args at the end
 
         switch (options.Format)
         {
             case "mp3":
-                parts.Add("-x --audio-format mp3 --audio-quality 0");
+                args.Add("-x"); args.Add("--audio-format"); args.Add("mp3");
+                args.Add("--audio-quality"); args.Add("0");
                 break;
 
             case "wav":
-                parts.Add("-x --audio-format wav");
+                args.Add("-x"); args.Add("--audio-format"); args.Add("wav");
                 break;
 
             case "flac":
-                parts.Add("-x --audio-format flac");
+                args.Add("-x"); args.Add("--audio-format"); args.Add("flac");
                 break;
 
             case "ogg":
                 // yt-dlp uses "vorbis" as the codec name for ogg containers
-                parts.Add("-x --audio-format vorbis");
+                args.Add("-x"); args.Add("--audio-format"); args.Add("vorbis");
                 break;
 
             case "opus":
-                parts.Add("-x --audio-format opus");
+                args.Add("-x"); args.Add("--audio-format"); args.Add("opus");
                 break;
 
             case "m4a":
-                parts.Add("-x --audio-format m4a");
+                args.Add("-x"); args.Add("--audio-format"); args.Add("m4a");
                 break;
 
             case "avi":
-                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
-                parts.Add("--merge-output-format avi");
-                ffmpegArgs.Add("-c:v mpeg4 -c:a mp3 -b:a 192k");
+                args.Add("-f"); args.Add(MapQualityToFilter(options.Quality));
+                args.Add("--merge-output-format"); args.Add("avi");
+                ffmpegArgs.Add("-c:v mpeg4 -c:a mp3");
                 break;
 
             case "mkv":
-                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
-                parts.Add("--merge-output-format mkv");
+                args.Add("-f"); args.Add(MapQualityToFilter(options.Quality));
+                args.Add("--merge-output-format"); args.Add("mkv");
                 break;
 
             case "webm":
-                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
-                parts.Add("--merge-output-format webm");
+                args.Add("-f"); args.Add(MapQualityToFilter(options.Quality));
+                args.Add("--merge-output-format"); args.Add("webm");
                 break;
 
             default: // mp4
-                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
-                parts.Add("--merge-output-format mp4");
+                args.Add("-f"); args.Add(MapQualityToFilter(options.Quality));
+                args.Add("--merge-output-format"); args.Add("mp4");
                 ffmpegArgs.Add("-c:a aac -b:a 192k");
                 break;
         }
@@ -133,43 +144,54 @@ public class YtDlpService
 
         // Emit all ffmpeg args as a single flag (passing it twice would silently ignore the second)
         if (ffmpegArgs.Count > 0)
-            parts.Add($"--postprocessor-args \"ffmpeg:{string.Join(" ", ffmpegArgs)}\"");
+        {
+            args.Add("--postprocessor-args");
+            args.Add($"ffmpeg:{string.Join(" ", ffmpegArgs)}");
+        }
 
-        parts.Add($"--ffmpeg-location \"{FfmpegPath}\"");
+        args.Add("--ffmpeg-location"); args.Add(FfmpegPath);
 
         // Metadata embed
         if (options.EmbedMetadata)
-            parts.Add("--embed-metadata");
+            args.Add("--embed-metadata");
 
         // SponsorBlock — remove all category types yt-dlp supports
         if (options.RemoveSponsorBlock)
-            parts.Add("--sponsorblock-remove all");
+        {
+            args.Add("--sponsorblock-remove"); args.Add("all");
+        }
 
         // Browser cookies (for age-restricted / members-only content)
         if (!string.IsNullOrEmpty(options.CookiesFromBrowser) && options.CookiesFromBrowser != "(None)")
-            parts.Add($"--cookies-from-browser {options.CookiesFromBrowser}");
+        {
+            args.Add("--cookies-from-browser"); args.Add(options.CookiesFromBrowser);
+        }
 
         // Playlist range
         if (options.PlaylistStart.HasValue)
-            parts.Add($"--playlist-start {options.PlaylistStart.Value}");
+        {
+            args.Add("--playlist-start"); args.Add(options.PlaylistStart.Value.ToString());
+        }
         if (options.PlaylistEnd.HasValue)
-            parts.Add($"--playlist-end {options.PlaylistEnd.Value}");
+        {
+            args.Add("--playlist-end"); args.Add(options.PlaylistEnd.Value.ToString());
+        }
 
         // Thumbnails
         // Note: --embed-thumbnail for MP3 requires AtomicParsley.exe (bundled in Assets/)
         if (options.EmbedThumbnail)
-            parts.Add("--embed-thumbnail");
+            args.Add("--embed-thumbnail");
         if (options.WriteThumbnail)
-            parts.Add("--write-thumbnail");
+            args.Add("--write-thumbnail");
 
         // Subtitles
         if (options.WriteSubtitles || options.EmbedSubtitles)
         {
-            parts.Add(options.EmbedSubtitles ? "--embed-subs" : "--write-subs");
-            parts.Add($"--sub-langs {options.SubtitleLanguage}");
+            args.Add(options.EmbedSubtitles ? "--embed-subs" : "--write-subs");
+            args.Add("--sub-langs"); args.Add(options.SubtitleLanguage);
         }
         if (options.WriteAutoSubtitles)
-            parts.Add("--write-auto-subs");
+            args.Add("--write-auto-subs");
 
         // Output template
         string outputTemplate;
@@ -190,11 +212,11 @@ public class YtDlpService
             outputTemplate = Path.Combine(options.OutputFolder, "%(title)s.%(ext)s");
         }
 
-        parts.Add($"-o \"{outputTemplate}\"");
-        parts.Add("--newline");
-        parts.Add($"\"{options.Url}\"");
+        args.Add("-o"); args.Add(outputTemplate);
+        args.Add("--newline");
+        args.Add(options.Url);
 
-        return string.Join(" ", parts);
+        return args;
     }
 
     private static string MapQualityToFilter(string quality) => quality switch
@@ -277,35 +299,52 @@ public class YtDlpService
     {
         try
         {
-            var playlistArg = playlistFirstOnly ? "--playlist-items 1" : "--no-playlist";
-
             var psi = new ProcessStartInfo
             {
                 FileName               = YtDlpPath,
-                Arguments              = $"--dump-json {playlistArg} \"{url}\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError  = true,
                 UseShellExecute        = false,
                 CreateNoWindow         = true,
             };
 
-            using var process = Process.Start(psi)!;
-            var json = await process.StandardOutput.ReadLineAsync(ct);
-            await process.WaitForExitAsync(ct);
-
-            if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(json))
-                return null;
-
-            using var doc = System.Text.Json.JsonDocument.Parse(json);
-            var root = doc.RootElement;
-
-            return new VideoInfo
+            psi.ArgumentList.Add("--dump-json");
+            if (playlistFirstOnly)
             {
-                Title           = root.TryGetProperty("title",     out var t)  ? t.GetString()  ?? "" : "",
-                Channel         = root.TryGetProperty("channel",   out var c)  ? c.GetString()  ?? "" : "",
-                ThumbnailUrl    = root.TryGetProperty("thumbnail", out var th) ? th.GetString() ?? "" : "",
-                DurationSeconds = root.TryGetProperty("duration",  out var d)  ? d.GetDouble()       : 0,
-            };
+                psi.ArgumentList.Add("--playlist-items");
+                psi.ArgumentList.Add("1");
+            }
+            else
+            {
+                psi.ArgumentList.Add("--no-playlist");
+            }
+            psi.ArgumentList.Add(url);
+
+            using var process = Process.Start(psi)!;
+            try
+            {
+                var json = await process.StandardOutput.ReadLineAsync(ct);
+                await process.WaitForExitAsync(ct);
+
+                if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(json))
+                    return null;
+
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                return new VideoInfo
+                {
+                    Title           = root.TryGetProperty("title",     out var t)  ? t.GetString()  ?? "" : "",
+                    Channel         = root.TryGetProperty("channel",   out var c)  ? c.GetString()  ?? "" : "",
+                    ThumbnailUrl    = root.TryGetProperty("thumbnail", out var th) ? th.GetString() ?? "" : "",
+                    DurationSeconds = root.TryGetProperty("duration",  out var d)  ? d.GetDouble()       : 0,
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                try { process.Kill(entireProcessTree: true); } catch { /* best-effort */ }
+                return null;
+            }
         }
         catch
         {
@@ -340,11 +379,12 @@ public class YtDlpService
             var psi = new ProcessStartInfo
             {
                 FileName               = path,
-                Arguments              = arg,
                 RedirectStandardOutput = true,
                 UseShellExecute        = false,
                 CreateNoWindow         = true,
             };
+            psi.ArgumentList.Add(arg);
+
             using var p = Process.Start(psi)!;
             var output = await p.StandardOutput.ReadLineAsync();
             await p.WaitForExitAsync();

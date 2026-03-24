@@ -33,6 +33,7 @@ public sealed partial class MainWindow : Window
 
         // React when the user toggles Advanced Mode in Settings
         SettingsViewModel.AdvancedModeChanged += OnAdvancedModeChanged;
+        Closed += (_, _) => SettingsViewModel.AdvancedModeChanged -= OnAdvancedModeChanged;
 
         ContentFrame.Navigate(typeof(DownloadPage));
         NavView.SelectedItem = NavView.MenuItems[0];
