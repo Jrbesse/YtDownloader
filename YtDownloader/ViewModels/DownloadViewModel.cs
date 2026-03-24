@@ -246,7 +246,6 @@ public partial class DownloadViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _ = ex; // detail captured in verbose log when enabled
             CancelVisibility        = Visibility.Visible;
             DownloadVisibility      = Visibility.Collapsed;
             ProgressVisibility      = Visibility.Visible;
@@ -258,7 +257,10 @@ public partial class DownloadViewModel : ObservableObject
                                       "Still having trouble? Try Advanced Mode in Settings — " +
                                       "it has extra options that can help.";
             if (AppSettings.Instance.VerboseLogging)
+            {
+                LogText      += $"[error]\n{ex}\n";
                 LogVisibility = Visibility.Visible;
+            }
         }
         finally
         {
