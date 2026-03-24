@@ -11,6 +11,15 @@ public sealed partial class MainWindow : Window
 {
     private readonly DispatcherQueue _dispatcher = DispatcherQueue.GetForCurrentThread();
 
+    /// <summary>
+    /// Initializes the main application window: configures size and icon, applies persisted UI settings, wires the Advanced Mode change handler, and navigates to the default page.
+    /// </summary>
+    /// <remarks>
+    /// - Sets the window size to 800×950 and the application icon.
+    /// - Applies the persisted theme to the root grid before first render.
+    /// - Sets the visibility of the Advanced navigation item from persisted settings and subscribes to runtime changes.
+    /// - Navigates the content frame to the default Download page and selects the first navigation item.
+    /// </remarks>
     public MainWindow()
     {
         InitializeComponent();
@@ -40,6 +49,10 @@ public sealed partial class MainWindow : Window
 
     public FrameworkElement RootElement => RootGrid;
 
+    /// <summary>
+    /// Updates the UI to reflect whether Advanced Mode is enabled and, if it was disabled while the Advanced page was active, navigates to the Download page.
+    /// </summary>
+    /// <param name="isEnabled">`true` to enable Advanced Mode (make the Advanced navigation item visible); `false` to disable it (hide the Advanced navigation item).</param>
     private void OnAdvancedModeChanged(bool isEnabled)
     {
         _dispatcher.TryEnqueue(() =>
@@ -55,6 +68,18 @@ public sealed partial class MainWindow : Window
         });
     }
 
+    /// <summary>
+    /// Handles selection changes in the navigation view and navigates the ContentFrame to the selected page.
+    /// </summary>
+    /// <param name="sender">The NavigationView that raised the selection change.</param>
+    /// <param name="args">Selection change event data; if settings is selected the handler navigates to the Settings page.</param>
+    /// <remarks>
+    /// Navigation mapping:
+    /// - Tag "download" → DownloadPage
+    /// - Tag "history" → HistoryPage
+    /// - Tag "advanced" → AdvancedPage
+    /// Selecting Settings navigates to SettingsPage immediately.
+    /// </remarks>
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
         if (args.IsSettingsSelected)

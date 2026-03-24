@@ -69,6 +69,11 @@ public class YtDlpService
         onProgress(new DownloadProgress { Status = "Done!", Percent = 100, IsIndeterminate = false });
     }
 
+    /// <summary>
+    /// Builds the yt-dlp command-line argument string from the given download options.
+    /// </summary>
+    /// <param name="options">DownloadOptions that control format, post-processing, metadata, subtitles, thumbnails, cookies, playlist range, output template, and the target URL.</param>
+    /// <returns>The complete command-line argument string to pass to the yt-dlp executable.</returns>
     private static string BuildArguments(DownloadOptions options)
     {
         var parts      = new List<string>();
@@ -197,6 +202,11 @@ public class YtDlpService
         return string.Join(" ", parts);
     }
 
+    /// <summary>
+    /// Map a human-readable quality label to the corresponding yt-dlp format selection expression.
+    /// </summary>
+    /// <param name="quality">Quality label chosen by the user (e.g., "2160p (4K)", "1080p", "720p").</param>
+    /// <returns>The yt-dlp format selection expression that selects the requested video+audio streams or a sensible default when the label is unrecognized.</returns>
     private static string MapQualityToFilter(string quality) => quality switch
     {
         "2160p (4K)" => "bestvideo[height<=2160]+bestaudio/best[height<=2160]",
@@ -208,6 +218,11 @@ public class YtDlpService
         _            => "bestvideo+bestaudio/best",
     };
 
+    /// <summary>
+    /// Map a UI codec label to the corresponding ffmpeg encoder name used in post-processing.
+    /// </summary>
+    /// <param name="codec">Codec label presented in the UI (for example "H.264", "H.265/HEVC", "AV1", "VP9").</param>
+    /// <returns>The ffmpeg encoder name for the given label (e.g. "libx264"), or "copy" to preserve streams when no mapping exists.</returns>
     private static string MapVideoCodec(string codec) => codec switch
     {
         "H.264"      => "libx264",
@@ -217,6 +232,11 @@ public class YtDlpService
         _            => "copy",
     };
 
+    /// <summary>
+    /// Parses a single yt-dlp stdout/stderr line and converts it into a DownloadProgress describing the current operation.
+    /// </summary>
+    /// <param name="line">A single output line produced by yt-dlp or related tools (for example ffmpeg or merger).</param>
+    /// <returns>A DownloadProgress containing a human-readable status, detail text, `Percent` when available, and whether the progress is indeterminate.</returns>
     private static DownloadProgress ParseProgress(string line)
     {
         if (line.StartsWith("[ffmpeg]") || line.StartsWith("[Merger]"))
@@ -269,7 +289,13 @@ public class YtDlpService
     /// <summary>
     /// Fetches video metadata without downloading.
     /// Pass playlistFirstOnly: true for playlist URLs to get the first entry's info.
+    /// <summary>
+    /// Retrieves basic metadata for a video (or the first item of a playlist) by invoking yt-dlp and parsing its JSON output.
     /// </summary>
+    /// <param name="url">The video or playlist URL to query.</param>
+    /// <param name="ct">Cancellation token used to cancel the underlying process and read operations.</param>
+    /// <param name="playlistFirstOnly">If true and the URL is a playlist, only the first playlist item is queried; otherwise the URL is treated as a single video.</param>
+    /// <returns>A <see cref="VideoInfo"/> containing title, channel, thumbnail URL, and duration in seconds, or <c>null</c> if information cannot be retrieved.</returns>
     public static async Task<VideoInfo?> FetchVideoInfoAsync(
         string url,
         CancellationToken ct = default,
@@ -313,7 +339,11 @@ public class YtDlpService
         }
     }
 
-    /// <summary>Gets the version string for yt-dlp, ffmpeg, or AtomicParsley.</summary>
+    /// <summary>
+    /// Retrieve the installed version string for the specified tool.
+    /// </summary>
+    /// <param name="tool">The tool to query: use "yt-dlp" or "AtomicParsley"; any other value queries ffmpeg.</param>
+    /// <returns>The tool's version token (for example "2024.12.23" or "7.1"), the literal "Not found" if the executable is missing, or `null` if an error occurs while querying.</returns>
     public static async Task<string?> GetVersionAsync(string tool)
     {
         try

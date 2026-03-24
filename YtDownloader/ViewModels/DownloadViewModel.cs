@@ -126,6 +126,10 @@ public partial class DownloadViewModel : ObservableObject
     private string _outputFolder = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
 
+    /// <summary>
+    /// Persists the new output folder to application settings when remembering the output folder is enabled.
+    /// </summary>
+    /// <param name="value">The new output folder path to save.</param>
     partial void OnOutputFolderChanged(string value)
     {
         if (AppSettings.Instance.RememberOutputFolder)
@@ -177,6 +181,9 @@ public partial class DownloadViewModel : ObservableObject
 
     private bool CanDownload() => !YtDlpUpdateState.IsSwappingFile;
 
+    /// <summary>
+    /// Initiates a download for the current URL using the selected format/quality, updates progress UI, and records/send completion on success.
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanDownload))]
     private async Task Download()
     {
@@ -288,6 +295,12 @@ public partial class DownloadViewModel : ObservableObject
         });
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DownloadViewModel"/>, restoring the last-used output folder when configured and subscribing to yt-dlp update state changes.
+    /// </summary>
+    /// <remarks>
+    /// If <see cref="AppSettings.Instance.RememberOutputFolder"/> is enabled and <see cref="AppSettings.Instance.LastOutputFolder"/> is non-empty, the saved folder is restored to the view model's output folder. Subscribes to <see cref="YtDlpUpdateState.StateChanged"/> to keep update banner state in sync.
+    /// </remarks>
     public DownloadViewModel()
     {
         // Restore last used folder if the setting is enabled

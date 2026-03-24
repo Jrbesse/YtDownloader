@@ -39,14 +39,41 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool   _rememberOutputFolder = true;
     [ObservableProperty] private string _lastOutputFolder    = string.Empty;
 
-    // Auto-save whenever any setting changes
+    /// <summary>
+/// Persist current settings whenever the ShowDiagnostics setting changes.
+/// </summary>
+/// <param name="value">The new value of the ShowDiagnostics setting.</param>
     partial void OnShowDiagnosticsChanged(bool value)      => Save();
-    partial void OnThemeChanged(string value)              => Save();
-    partial void OnIsAdvancedModeChanged(bool value)       => Save();
-    partial void OnShowNotificationsChanged(bool value)    => Save();
-    partial void OnAutoCheckUpdatesChanged(bool value)     => Save();
-    partial void OnRememberOutputFolderChanged(bool value) => Save();
-    partial void OnLastOutputFolderChanged(string value)   => Save();
+    /// <summary>
+/// Called when the Theme setting changes to persist the updated setting to disk.
+/// </summary>
+/// <param name="value">The new theme identifier (for example "System", "Light", or "Dark").</param>
+partial void OnThemeChanged(string value)              => Save();
+    /// <summary>
+/// Persist the updated advanced-mode setting to the application's settings storage.
+/// </summary>
+/// <param name="value">The new value of <c>IsAdvancedMode</c>.</param>
+partial void OnIsAdvancedModeChanged(bool value)       => Save();
+    /// <summary>
+/// Persist current settings when the ShowNotifications value changes.
+/// </summary>
+/// <param name="value">The new value of the ShowNotifications setting.</param>
+partial void OnShowNotificationsChanged(bool value)    => Save();
+    /// <summary>
+/// Persist the AutoCheckUpdates setting when its value changes.
+/// </summary>
+/// <param name="value">The new value of the AutoCheckUpdates setting.</param>
+partial void OnAutoCheckUpdatesChanged(bool value)     => Save();
+    /// <summary>
+/// Persist current settings when the RememberOutputFolder setting changes.
+/// </summary>
+/// <param name="value">The new value of the RememberOutputFolder setting.</param>
+partial void OnRememberOutputFolderChanged(bool value) => Save();
+    /// <summary>
+/// Persists application settings when the LastOutputFolder value changes.
+/// </summary>
+/// <param name="value">The new last output folder path.</param>
+partial void OnLastOutputFolderChanged(string value)   => Save();
 
     // ── Serialization model ───────────────────────────────────────────────────
 
@@ -71,6 +98,12 @@ public partial class AppSettings : ObservableObject
         Load();
     }
 
+    /// <summary>
+    /// Loads persisted application settings from the settings file and applies them to the in-memory backing fields.
+    /// </summary>
+    /// <remarks>
+    /// If the settings file is missing, empty, or cannot be deserialized, the method leaves current values unchanged. Backing fields are assigned directly to avoid triggering change handlers, and any I/O or deserialization errors are caught and ignored.
+    /// </remarks>
     private void Load()
     {
         try
@@ -100,6 +133,12 @@ public partial class AppSettings : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Persists current app settings to the settings.json file in the local application data folder.
+    /// </summary>
+    /// <remarks>
+    /// Writes indented JSON, ensures the settings directory exists, and performs an atomic update by writing to a temporary file then replacing the target file. Any error during save is suppressed to avoid crashing the application.
+    /// </remarks>
     private void Save()
     {
         try

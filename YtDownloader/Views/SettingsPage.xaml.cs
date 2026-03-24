@@ -12,6 +12,9 @@ public sealed partial class SettingsPage : Page
         .Version?
         .ToString() ?? string.Empty;
 
+    /// <summary>
+    /// Initializes a new instance of the SettingsPage, sets up the UI, and triggers loading of version information into the view model.
+    /// </summary>
     public SettingsPage()
     {
         InitializeComponent();

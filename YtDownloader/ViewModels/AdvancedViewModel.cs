@@ -108,6 +108,9 @@ public partial class AdvancedViewModel : ObservableObject
     [ObservableProperty] private bool _isQueueRunning = false;
     [ObservableProperty] private Visibility _stopVisibility = Visibility.Collapsed;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AdvancedViewModel"/> and restores the saved output folder when the application settings request it.
+    /// </summary>
     public AdvancedViewModel()
     {
         if (AppSettings.Instance.RememberOutputFolder
@@ -117,7 +120,12 @@ public partial class AdvancedViewModel : ObservableObject
         }
     }
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Opens a folder picker (starting in the user's Downloads folder) to select an output directory and updates the view model's OutputFolder.
+    /// </summary>
+    /// <remarks>
+    /// If a folder is selected and <c>AppSettings.Instance.RememberOutputFolder</c> is true, the chosen path is also saved to <c>AppSettings.Instance.LastOutputFolder</c>.
+    /// </remarks>
 
     [RelayCommand]
     private async Task BrowseFolder()
@@ -138,10 +146,20 @@ public partial class AdvancedViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
+    /// <summary>
+        /// Opens the current output folder in Windows Explorer.
+        /// </summary>
+        [RelayCommand]
     private void OpenFolder() =>
         Process.Start("explorer.exe", $"\"{OutputFolder}\"");
 
+    /// <summary>
+    /// Starts processing the newline-separated URLs in <c>UrlsText</c> by populating <c>Queue</c> and running each entry as a sequential download task.
+    /// </summary>
+    /// <remarks>
+    /// If <c>UrlsText</c> contains no valid URLs the method returns immediately. The method sets queue-running state and creates an internal cancellation token source; when cancellation is requested remaining queue items are marked as cancelled. UI-visible state (for example <c>IsQueueRunning</c> and <c>StopVisibility</c>) and the <c>Queue</c> collection are updated to reflect progress and completion.
+    /// </remarks>
+    /// <returns>A task that completes when all queue items have been processed or the queue is cancelled.</returns>
     [RelayCommand(CanExecute = nameof(CanStartQueue))]
     private async Task StartQueue()
     {
@@ -178,12 +196,26 @@ public partial class AdvancedViewModel : ObservableObject
         _queueCts = null;
     }
 
-    private bool CanStartQueue() => !IsQueueRunning;
+    /// <summary>
+/// Indicates whether the download queue can be started.
+/// </summary>
+/// <returns>`true` if the queue is not running and can be started, `false` otherwise.</returns>
+private bool CanStartQueue() => !IsQueueRunning;
 
+    /// <summary>
+    /// Requests cancellation of the currently running download queue.
+    /// </summary>
+    /// <remarks>
+    /// Has no effect if no queue is active.
+    /// </remarks>
     [RelayCommand]
     private void StopQueue() => _queueCts?.Cancel();
 
-    // ── Queue processing ──────────────────────────────────────────────────────
+    /// <summary>
+    /// Processes a single download queue item using the view model's current settings: performs the download, updates the item's progress and status, records a history entry, and sends a completion notification.
+    /// </summary>
+    /// <param name="item">The queue item to process and update.</param>
+    /// <param name="ct">Cancellation token to observe for aborting the operation; when cancelled the item's status will be set to Cancelled.</param>
 
     private async Task ProcessQueueItem(AdvancedDownloadQueueItem item, CancellationToken ct)
     {
@@ -252,6 +284,11 @@ public partial class AdvancedViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Applies progress values from <paramref name="progress"/> to the specified queue <paramref name="item"/> on the UI dispatcher.
+    /// </summary>
+    /// <param name="item">The queue item whose progress properties will be updated.</param>
+    /// <param name="progress">The progress values to apply (percent, indeterminate flag, and detail text).</param>
     private void UpdateItemProgress(AdvancedDownloadQueueItem item, DownloadProgress progress)
     {
         _dispatcher.TryEnqueue(() =>

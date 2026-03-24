@@ -12,6 +12,10 @@ public partial class App : Application
         InitializeComponent();
     }
 
+    /// <summary>
+    /// Initialize app services, create and show the main window, apply the persisted theme and subscribe to theme changes, and start a background updater task.
+    /// </summary>
+    /// <param name="args">Activation details provided by the system for this launch.</param>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         NotificationService.Register();

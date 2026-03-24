@@ -14,6 +14,10 @@ public partial class AdvancedDownloadQueueItem : ObservableObject
     [ObservableProperty] private bool            _isIndeterminate = false;
     [ObservableProperty] private string          _detail      = string.Empty;
 
+    /// <summary>
+    /// Set <see cref="StatusText"/> to the user-facing text that corresponds to the new queue item status.
+    /// </summary>
+    /// <param name="value">The new <see cref="QueueItemStatus"/> whose display text will be assigned to <see cref="StatusText"/>.</param>
     partial void OnStatusChanged(QueueItemStatus value)
     {
         StatusText = value switch

@@ -16,7 +16,12 @@ public static class NotificationService
     /// <summary>
     /// Registers the app for toast notifications. Call once in App.OnLaunched
     /// before MainWindow.Activate().
+    /// <summary>
+    /// Registers the application with AppNotificationManager to enable toast notifications.
     /// </summary>
+    /// <remarks>
+    /// This method is idempotent — it does nothing if registration has already succeeded. Exceptions thrown during registration are suppressed so callers are not affected.
+    /// </remarks>
     public static void Register()
     {
         if (_registered) return;
@@ -35,7 +40,11 @@ public static class NotificationService
     /// <summary>
     /// Shows a toast notification for a completed download if notifications
     /// are enabled in AppSettings and registration succeeded.
+    /// <summary>
+    /// Displays a toast notification indicating a completed download with the item's title and destination folder.
     /// </summary>
+    /// <param name="title">The downloaded item's title shown in the notification.</param>
+    /// <param name="folder">The destination folder path shown in the notification.</param>
     public static void SendDownloadComplete(string title, string folder)
     {
         if (!_registered) return;

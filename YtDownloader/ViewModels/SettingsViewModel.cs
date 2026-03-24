@@ -67,7 +67,12 @@ public partial class SettingsViewModel : ObservableObject
 
     public List<string> AvailableThemes { get; } = new() { "System", "Light", "Dark" };
 
-    // ── Dependency versions ───────────────────────────────────────────────────
+    /// <summary>
+    /// Populates the view model's external-tool version properties by querying their installed versions.
+    /// </summary>
+    /// <remarks>
+    /// Sets <see cref="YtDlpVersion"/>, <see cref="FfmpegVersion"/>, and <see cref="AtomicParsleyVersion"/> to the discovered version strings; if a tool is not found, the corresponding property is set to "Not found".
+    /// </remarks>
 
     public async void LoadVersionsAsync()
     {
@@ -76,6 +81,10 @@ public partial class SettingsViewModel : ObservableObject
         AtomicParsleyVersion   = await YtDlpService.GetVersionAsync("AtomicParsley") ?? "Not found";
     }
 
+    /// <summary>
+    /// Performs an update check using the updater service, updates progress and status messages, and refreshes the yt-dlp version state.
+    /// </summary>
+    /// <returns>Completes when the update check and version refresh finish.</returns>
     [RelayCommand]
     private async Task CheckUpdates()
     {
@@ -90,5 +99,9 @@ public partial class SettingsViewModel : ObservableObject
         IsUpdating   = false;
     }
 
-    private void OnUpdateStatus(string message) => UpdateStatus = message;
+    /// <summary>
+/// Updates the view model's UpdateStatus property with the provided status message.
+/// </summary>
+/// <param name="message">The status text to display in the UI.</param>
+private void OnUpdateStatus(string message) => UpdateStatus = message;
 }
