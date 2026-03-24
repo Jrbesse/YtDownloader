@@ -205,12 +205,13 @@ public partial class DownloadViewModel : ObservableObject
             var isAudio = SelectedFormat is "mp3" or "wav";
             var options = new DownloadOptions
             {
-                Url           = Url,
-                Format        = SelectedFormat,
-                Quality       = SelectedQuality,
-                OutputFolder  = OutputFolder,
-                IsPlaylist    = IsPlaylist,
-                EmbedMetadata = isAudio,
+                Url                = Url,
+                Format             = SelectedFormat,
+                Quality            = SelectedQuality,
+                OutputFolder       = OutputFolder,
+                IsPlaylist         = IsPlaylist,
+                EmbedMetadata      = isAudio,
+                CookiesFromBrowser = BrowserDetectionService.GetDefaultBrowserForYtDlp(),
             };
 
             await _ytDlp.DownloadAsync(options, OnProgress, _downloadCts.Token);
@@ -245,10 +246,17 @@ public partial class DownloadViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            CancelVisibility   = Visibility.Visible;
-            DownloadVisibility = Visibility.Collapsed;
-            ProgressVisibility = Visibility.Collapsed;
-            ProgressStatus     = $"Error: {ex.Message}";
+            _ = ex; // detail captured in verbose log when enabled
+            CancelVisibility        = Visibility.Visible;
+            DownloadVisibility      = Visibility.Collapsed;
+            ProgressVisibility      = Visibility.Visible;
+            IsProgressIndeterminate = false;
+            ProgressValue           = 0;
+            ProgressPercent         = string.Empty;
+            ProgressStatus          = "Couldn't complete the download.";
+            ProgressDetail          = "Check your connection and try the link again. " +
+                                      "Still having trouble? Try Advanced Mode in Settings — " +
+                                      "it has extra options that can help.";
             if (AppSettings.Instance.VerboseLogging)
                 LogVisibility = Visibility.Visible;
         }
