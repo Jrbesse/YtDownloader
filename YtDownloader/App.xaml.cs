@@ -14,6 +14,8 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        NotificationService.Register();
+
         MainWindow = new MainWindow();
 
 

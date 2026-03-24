@@ -14,8 +14,9 @@ public class YtDlpService
     private static readonly string AppDir =
         Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName)!;
 
-    public static string YtDlpPath  => Path.Combine(AppDir, "Assets", "yt-dlp.exe");
-    public static string FfmpegPath => Path.Combine(AppDir, "Assets", "ffmpeg.exe");
+    public static string YtDlpPath         => Path.Combine(AppDir, "Assets", "yt-dlp.exe");
+    public static string FfmpegPath        => Path.Combine(AppDir, "Assets", "ffmpeg.exe");
+    public static string AtomicParsleyPath => Path.Combine(AppDir, "Assets", "AtomicParsley.exe");
 
     private static readonly Regex ProgressRegex = new(
         @"\[download\]\s+(?<pct>[\d.]+)%\s+of\s+(?<size>[\d.]+\S+)\s+at\s+(?<speed>[\d.]+\S+)\s+ETA\s+(?<eta>\S+)",
@@ -70,7 +71,8 @@ public class YtDlpService
 
     private static string BuildArguments(DownloadOptions options)
     {
-        var parts = new List<string>();
+        var parts      = new List<string>();
+        var ffmpegArgs = new List<string>(); // merged into a single --postprocessor-args at the end
 
         switch (options.Format)
         {
@@ -82,24 +84,111 @@ public class YtDlpService
                 parts.Add("-x --audio-format wav");
                 break;
 
+            case "flac":
+                parts.Add("-x --audio-format flac");
+                break;
+
+            case "ogg":
+                // yt-dlp uses "vorbis" as the codec name for ogg containers
+                parts.Add("-x --audio-format vorbis");
+                break;
+
+            case "opus":
+                parts.Add("-x --audio-format opus");
+                break;
+
+            case "m4a":
+                parts.Add("-x --audio-format m4a");
+                break;
+
             case "avi":
                 parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
                 parts.Add("--merge-output-format avi");
-                parts.Add("--postprocessor-args \"ffmpeg:-c:v mpeg4 -c:a mp3 -b:a 192k\"");
+                ffmpegArgs.Add("-c:v mpeg4 -c:a mp3 -b:a 192k");
+                break;
+
+            case "mkv":
+                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
+                parts.Add("--merge-output-format mkv");
+                break;
+
+            case "webm":
+                parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
+                parts.Add("--merge-output-format webm");
                 break;
 
             default: // mp4
                 parts.Add($"-f \"{MapQualityToFilter(options.Quality)}\"");
                 parts.Add("--merge-output-format mp4");
-                parts.Add("--postprocessor-args \"ffmpeg:-c:a aac -b:a 192k\"");
+                ffmpegArgs.Add("-c:a aac -b:a 192k");
                 break;
         }
 
+        // Codec overrides (advanced mode)
+        if (!string.IsNullOrEmpty(options.VideoCodec) && options.VideoCodec != "(Auto)")
+            ffmpegArgs.Add($"-c:v {MapVideoCodec(options.VideoCodec)}");
+
+        if (!string.IsNullOrEmpty(options.AudioBitrate))
+            ffmpegArgs.Add($"-b:a {options.AudioBitrate}");
+
+        // Emit all ffmpeg args as a single flag (passing it twice would silently ignore the second)
+        if (ffmpegArgs.Count > 0)
+            parts.Add($"--postprocessor-args \"ffmpeg:{string.Join(" ", ffmpegArgs)}\"");
+
         parts.Add($"--ffmpeg-location \"{FfmpegPath}\"");
 
-        var outputTemplate = options.IsPlaylist
-            ? Path.Combine(options.OutputFolder, "%(playlist)s", "%(playlist_index)s - %(title)s.%(ext)s")
-            : Path.Combine(options.OutputFolder, "%(title)s.%(ext)s");
+        // Metadata embed
+        if (options.EmbedMetadata)
+            parts.Add("--embed-metadata");
+
+        // SponsorBlock — remove all category types yt-dlp supports
+        if (options.RemoveSponsorBlock)
+            parts.Add("--sponsorblock-remove all");
+
+        // Browser cookies (for age-restricted / members-only content)
+        if (!string.IsNullOrEmpty(options.CookiesFromBrowser) && options.CookiesFromBrowser != "(None)")
+            parts.Add($"--cookies-from-browser {options.CookiesFromBrowser}");
+
+        // Playlist range
+        if (options.PlaylistStart.HasValue)
+            parts.Add($"--playlist-start {options.PlaylistStart.Value}");
+        if (options.PlaylistEnd.HasValue)
+            parts.Add($"--playlist-end {options.PlaylistEnd.Value}");
+
+        // Thumbnails
+        // Note: --embed-thumbnail for MP3 requires AtomicParsley.exe (bundled in Assets/)
+        if (options.EmbedThumbnail)
+            parts.Add("--embed-thumbnail");
+        if (options.WriteThumbnail)
+            parts.Add("--write-thumbnail");
+
+        // Subtitles
+        if (options.WriteSubtitles || options.EmbedSubtitles)
+        {
+            parts.Add(options.EmbedSubtitles ? "--embed-subs" : "--write-subs");
+            parts.Add($"--sub-langs {options.SubtitleLanguage}");
+        }
+        if (options.WriteAutoSubtitles)
+            parts.Add("--write-auto-subs");
+
+        // Output template
+        string outputTemplate;
+        if (!string.IsNullOrEmpty(options.CustomOutputTemplate))
+        {
+            // If the user gave a relative template, prepend the output folder
+            outputTemplate = Path.IsPathRooted(options.CustomOutputTemplate)
+                ? options.CustomOutputTemplate
+                : Path.Combine(options.OutputFolder, options.CustomOutputTemplate);
+        }
+        else if (options.IsPlaylist)
+        {
+            outputTemplate = Path.Combine(options.OutputFolder,
+                "%(playlist)s", "%(playlist_index)s - %(title)s.%(ext)s");
+        }
+        else
+        {
+            outputTemplate = Path.Combine(options.OutputFolder, "%(title)s.%(ext)s");
+        }
 
         parts.Add($"-o \"{outputTemplate}\"");
         parts.Add("--newline");
@@ -117,6 +206,15 @@ public class YtDlpService
         "480p"       => "bestvideo[height<=480]+bestaudio/best[height<=480]",
         "360p"       => "bestvideo[height<=360]+bestaudio/best[height<=360]",
         _            => "bestvideo+bestaudio/best",
+    };
+
+    private static string MapVideoCodec(string codec) => codec switch
+    {
+        "H.264"      => "libx264",
+        "H.265/HEVC" => "libx265",
+        "AV1"        => "libaom-av1",
+        "VP9"        => "libvpx-vp9",
+        _            => "copy",
     };
 
     private static DownloadProgress ParseProgress(string line)
@@ -179,7 +277,6 @@ public class YtDlpService
     {
         try
         {
-            // --playlist-items 1 fetches only the first entry from a playlist
             var playlistArg = playlistFirstOnly ? "--playlist-items 1" : "--no-playlist";
 
             var psi = new ProcessStartInfo
@@ -193,14 +290,13 @@ public class YtDlpService
             };
 
             using var process = Process.Start(psi)!;
-            // For playlists, yt-dlp outputs one JSON object per line — read only the first
             var json = await process.StandardOutput.ReadLineAsync(ct);
             await process.WaitForExitAsync(ct);
 
             if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(json))
                 return null;
 
-            using var doc  = System.Text.Json.JsonDocument.Parse(json);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
             var root = doc.RootElement;
 
             return new VideoInfo
@@ -217,13 +313,29 @@ public class YtDlpService
         }
     }
 
-    /// <summary>Gets the version string for yt-dlp or ffmpeg.</summary>
+    /// <summary>Gets the version string for yt-dlp, ffmpeg, or AtomicParsley.</summary>
     public static async Task<string?> GetVersionAsync(string tool)
     {
         try
         {
-            var path = tool == "yt-dlp" ? YtDlpPath : FfmpegPath;
-            var arg  = tool == "yt-dlp" ? "--version" : "-version";
+            string path, arg;
+            if (tool == "yt-dlp")
+            {
+                path = YtDlpPath;
+                arg  = "--version";
+            }
+            else if (tool == "AtomicParsley")
+            {
+                path = AtomicParsleyPath;
+                arg  = "--version";
+            }
+            else // ffmpeg
+            {
+                path = FfmpegPath;
+                arg  = "-version";
+            }
+
+            if (!File.Exists(path)) return "Not found";
 
             var psi = new ProcessStartInfo
             {
@@ -237,6 +349,9 @@ public class YtDlpService
             var output = await p.StandardOutput.ReadLineAsync();
             await p.WaitForExitAsync();
 
+            // ffmpeg:        "ffmpeg version 7.1 Copyright ..." → index [2]
+            // AtomicParsley: "AtomicParsley version: 0.9.6 ..." → index [2]
+            // yt-dlp:        "2024.12.23"                       → keep as-is
             if (output?.Split(' ').Length > 3)
                 output = output.Split(' ')[2];
 

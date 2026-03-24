@@ -30,6 +30,12 @@
                     Tag="history"
                     Content="History"
                     Icon="List" />
+                <NavigationViewItem
+                    x:Name="AdvancedNavItem"
+                    Tag="advanced"
+                    Content="Advanced"
+                    Icon="Setting"
+                    Visibility="Collapsed" />
             </NavigationView.MenuItems>
             <Frame x:Name="ContentFrame" />
         </NavigationView>

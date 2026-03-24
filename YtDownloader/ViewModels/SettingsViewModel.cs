@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Windows.Storage.Pickers;
 using YtDownloader.Services;
 
 namespace YtDownloader.ViewModels;
@@ -9,20 +8,50 @@ public partial class SettingsViewModel : ObservableObject
 {
     [ObservableProperty] private string _ytDlpVersion  = "Checking…";
     [ObservableProperty] private string _ffmpegVersion = "Checking…";
+    [ObservableProperty] private string _atomicParsleyVersion = "Checking…";
     [ObservableProperty] private string _updateStatus  = string.Empty;
     [ObservableProperty] private bool   _isUpdating    = false;
 
-    [ObservableProperty] private bool _showNotifications    = true;
-    [ObservableProperty] private bool _autoCheckUpdates     = true;
-    [ObservableProperty] private bool _rememberOutputFolder = true;
-
-    // ── Pass-through to AppSettings singleton ─────────────────────────────────
+    // ── Pass-throughs to AppSettings singleton ────────────────────────────────
 
     public bool ShowDiagnostics
     {
         get => AppSettings.Instance.ShowDiagnostics;
         set => AppSettings.Instance.ShowDiagnostics = value;
     }
+
+    public bool ShowNotifications
+    {
+        get => AppSettings.Instance.ShowNotifications;
+        set { AppSettings.Instance.ShowNotifications = value; OnPropertyChanged(); }
+    }
+
+    public bool AutoCheckUpdates
+    {
+        get => AppSettings.Instance.AutoCheckUpdates;
+        set { AppSettings.Instance.AutoCheckUpdates = value; OnPropertyChanged(); }
+    }
+
+    public bool RememberOutputFolder
+    {
+        get => AppSettings.Instance.RememberOutputFolder;
+        set { AppSettings.Instance.RememberOutputFolder = value; OnPropertyChanged(); }
+    }
+
+    public bool IsAdvancedMode
+    {
+        get => AppSettings.Instance.IsAdvancedMode;
+        set
+        {
+            if (AppSettings.Instance.IsAdvancedMode == value) return;
+            AppSettings.Instance.IsAdvancedMode = value;
+            OnPropertyChanged();
+            AdvancedModeChanged?.Invoke(value);
+        }
+    }
+
+    /// <summary>Fired when the user toggles Advanced Mode so MainWindow can react.</summary>
+    public static event Action<bool>? AdvancedModeChanged;
 
     // Theme: bound to a ComboBox with items "System", "Light", "Dark"
     public string SelectedTheme
@@ -38,18 +67,13 @@ public partial class SettingsViewModel : ObservableObject
 
     public List<string> AvailableThemes { get; } = new() { "System", "Light", "Dark" };
 
-    // ── Default folder ────────────────────────────────────────────────────────
-
-    [ObservableProperty]
-    private string _defaultFolder = System.IO.Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-
     // ── Dependency versions ───────────────────────────────────────────────────
 
     public async void LoadVersionsAsync()
     {
-        YtDlpVersion  = await YtDlpService.GetVersionAsync("yt-dlp")  ?? "Not found";
-        FfmpegVersion = await YtDlpService.GetVersionAsync("ffmpeg") ?? "Not found";
+        YtDlpVersion           = await YtDlpService.GetVersionAsync("yt-dlp")  ?? "Not found";
+        FfmpegVersion          = await YtDlpService.GetVersionAsync("ffmpeg")  ?? "Not found";
+        AtomicParsleyVersion   = await YtDlpService.GetVersionAsync("AtomicParsley") ?? "Not found";
     }
 
     [RelayCommand]
@@ -67,19 +91,4 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     private void OnUpdateStatus(string message) => UpdateStatus = message;
-
-    [RelayCommand]
-    private async Task BrowseDefaultFolder()
-    {
-        var picker = new FolderPicker();
-        picker.SuggestedStartLocation = PickerLocationId.Downloads;
-        picker.FileTypeFilter.Add("*");
-
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-        var folder = await picker.PickSingleFolderAsync();
-        if (folder is not null)
-            DefaultFolder = folder.Path;
-    }
 }
