@@ -108,10 +108,17 @@ jobs:
           Compress-Archive -Path "$stagingDir/*" -DestinationPath "publish/$zipName" -Force
           Write-Host "Created publish/$zipName"
 
+      - name: Extract version
+        id: tagVersion
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#release-v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${ GITHUB_REF_NAME#release-v }
+          tag_name: ${{ steps.tagVersion.outputs.version }}
           files: publish/YtDownloader-*-win-x64.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
