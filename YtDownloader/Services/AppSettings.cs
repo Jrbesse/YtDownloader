@@ -38,6 +38,7 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool   _autoCheckUpdates    = true;
     [ObservableProperty] private bool   _rememberOutputFolder = true;
     [ObservableProperty] private string _lastOutputFolder    = string.Empty;
+    [ObservableProperty] private bool   _verboseLogging      = false;
 
     // Auto-save whenever any setting changes
     partial void OnShowDiagnosticsChanged(bool value)      => Save();
@@ -47,6 +48,7 @@ public partial class AppSettings : ObservableObject
     partial void OnAutoCheckUpdatesChanged(bool value)     => Save();
     partial void OnRememberOutputFolderChanged(bool value) => Save();
     partial void OnLastOutputFolderChanged(string value)   => Save();
+    partial void OnVerboseLoggingChanged(bool value)       => Save();
 
     // ── Serialization model ───────────────────────────────────────────────────
 
@@ -62,6 +64,7 @@ public partial class AppSettings : ObservableObject
         public bool   AutoCheckUpdates     { get; init; } = true;
         public bool   RememberOutputFolder { get; init; } = true;
         public string LastOutputFolder     { get; init; } = string.Empty;
+        public bool   VerboseLogging       { get; init; } = false;
     }
 
     // ── Load / Save ───────────────────────────────────────────────────────────
@@ -93,6 +96,7 @@ public partial class AppSettings : ObservableObject
             _autoCheckUpdates     = data.AutoCheckUpdates;
             _rememberOutputFolder = data.RememberOutputFolder;
             _lastOutputFolder     = data.LastOutputFolder ?? string.Empty;
+            _verboseLogging       = data.VerboseLogging;
         }
         catch
         {
@@ -116,6 +120,7 @@ public partial class AppSettings : ObservableObject
                 AutoCheckUpdates     = AutoCheckUpdates,
                 RememberOutputFolder = RememberOutputFolder,
                 LastOutputFolder     = LastOutputFolder,
+                VerboseLogging       = VerboseLogging,
             };
 
             var json = JsonSerializer.Serialize(data,

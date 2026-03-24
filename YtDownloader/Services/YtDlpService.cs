@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using YtDownloader.Models;
 
@@ -47,6 +48,8 @@ public class YtDlpService
 
         using var process = new Process { StartInfo = psi, EnableRaisingEvents = true };
 
+        var stderrBuffer = new StringBuilder();
+
         process.OutputDataReceived += (_, e) =>
         {
             if (e.Data is null) return;
@@ -56,6 +59,7 @@ public class YtDlpService
         process.ErrorDataReceived += (_, e) =>
         {
             if (e.Data is null) return;
+            stderrBuffer.AppendLine(e.Data);
             onProgress(new DownloadProgress
             {
                 Status          = "Processing…",
@@ -80,7 +84,10 @@ public class YtDlpService
         }
 
         if (process.ExitCode != 0)
-            throw new Exception($"yt-dlp exited with code {process.ExitCode}. Check the URL and try again.");
+        {
+            var detail = stderrBuffer.Length > 0 ? $"\n\nyt-dlp output:\n{stderrBuffer}" : "";
+            throw new Exception($"yt-dlp exited with code {process.ExitCode}.{detail}");
+        }
 
         onProgress(new DownloadProgress { Status = "Done!", Percent = 100, IsIndeterminate = false });
     }

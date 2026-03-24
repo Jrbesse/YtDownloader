@@ -38,6 +38,12 @@ public partial class SettingsViewModel : ObservableObject
         set { AppSettings.Instance.RememberOutputFolder = value; OnPropertyChanged(); }
     }
 
+    public bool VerboseLogging
+    {
+        get => AppSettings.Instance.VerboseLogging;
+        set { AppSettings.Instance.VerboseLogging = value; OnPropertyChanged(); }
+    }
+
     public bool IsAdvancedMode
     {
         get => AppSettings.Instance.IsAdvancedMode;

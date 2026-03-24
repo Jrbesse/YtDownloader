@@ -150,6 +150,11 @@ public partial class DownloadViewModel : ObservableObject
     [ObservableProperty] private bool _updateBannerVisibility = false;
     [ObservableProperty] private string _updateBannerText = string.Empty;
 
+    // ── Verbose log ───────────────────────────────────────────────────────────
+
+    [ObservableProperty] private string     _logText       = string.Empty;
+    [ObservableProperty] private Visibility _logVisibility = Visibility.Collapsed;
+
     // ── Commands ──────────────────────────────────────────────────────────────
 
     [RelayCommand]
@@ -192,6 +197,8 @@ public partial class DownloadViewModel : ObservableObject
         ProgressStatus          = "Fetching video info…";
         ProgressDetail          = "Connecting to YouTube…";
         ProgressValue           = 0;
+        LogText                 = string.Empty;
+        LogVisibility           = AppSettings.Instance.VerboseLogging ? Visibility.Visible : Visibility.Collapsed;
 
         try
         {
@@ -242,6 +249,8 @@ public partial class DownloadViewModel : ObservableObject
             DownloadVisibility = Visibility.Collapsed;
             ProgressVisibility = Visibility.Collapsed;
             ProgressStatus     = $"Error: {ex.Message}";
+            if (AppSettings.Instance.VerboseLogging)
+                LogVisibility = Visibility.Visible;
         }
         finally
         {
@@ -285,6 +294,9 @@ public partial class DownloadViewModel : ObservableObject
             ProgressDetail  = progress.Detail;
             ProgressValue   = progress.Percent;
             ProgressPercent = progress.IsIndeterminate ? "" : $"{progress.Percent:0}%";
+
+            if (AppSettings.Instance.VerboseLogging && !string.IsNullOrEmpty(progress.Detail))
+                LogText += progress.Detail + "\n";
         });
     }
 
