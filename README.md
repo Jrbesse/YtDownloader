@@ -1,110 +1,96 @@
 # YT Downloader
 
-A clean, no-install Windows desktop app for downloading YouTube videos and audio.
-Built with Claude Sonnet 4.6 Free, using **WinUI 3 (Windows App SDK)** and **.NET 8**, powered by **yt-dlp** and **ffmpeg**.
+A portable Windows desktop application for downloading videos and audio from YouTube and other sites supported by yt-dlp.
+
+Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required — all dependencies are bundled.
 
 ---
 
-## 📁 Repository Structure
+## Features
 
-```
-/
-├── YtDownloader/               # Main WinUI 3 application
-│   ├── Assets/
-│   │   ├── yt-dlp.exe          ← You download this (see below)
-│   │   └── ffmpeg.exe          ← You download this (see below)
-│   ├── Models/
-│   ├── Services/
-│   ├── ViewModels/
-│   ├── Views/
-│   ├── Themes/
-│   └── YtDownloader.csproj
-│
-├── YtDownloaderLauncher/       # Lightweight launcher exe (no console flash)
-│   ├── LauncherProgram.cs
-│   └── YtDownloaderLauncher.csproj
-│
-└── YtDownloader.sln            # Solution file — open this in Visual Studio
-```
+### Simple Mode
+- Paste a URL and download in one click
+- Supports MP4, MP3, AVI, WAV output formats
+- Automatically uses your default browser's cookies for age-restricted or members-only content
+- Remembers your last output folder
 
-### Why two projects?
+### Advanced Mode
+- **Download queue** — queue multiple URLs for sequential processing
+- **Extended formats** — MKV, WebM, FLAC, OGG, OPUS, M4A
+- **Video codec selection** — H.264, H.265/HEVC, AV1, VP9
+- **Audio bitrate control** — 128k, 192k, 320k
+- **Metadata embedding** — title, uploader, date via `--embed-metadata`
+- **Thumbnail embedding and export**
+- **SponsorBlock** — automatically remove sponsor segments
+- **Subtitle support** — download, embed, or write auto-generated subtitles
+- **Playlist range** — specify start and end items for playlist downloads
+- **Custom output templates** — full yt-dlp `--output` template support
+- **Cookie source selection** — choose which browser's cookies to use per download
 
-WinUI 3 self-contained apps require a folder full of runtime files alongside the executable. The **Launcher** is a tiny single-file `.exe` that sits at the top level of the distributed ZIP, finds the `YtDownloader\` subfolder, and starts the main app — giving users a clean, simple double-click experience without exposing the runtime internals.
-
----
-
-## 🛠 Prerequisites
-
-Install these once on your machine:
-
-| Tool | Download |
-|------|----------|
-| Visual Studio 2022 (Community is free) | https://visualstudio.microsoft.com/ |
-| Windows App SDK workload | Included in VS installer — select **"Windows application development"** |
-| .NET 8 SDK | https://dotnet.microsoft.com/download/dotnet/8.0 |
+### General
+- **Verbose logging** — stream raw yt-dlp output during downloads; full error output on failure
+- **Windows toast notifications** on download completion
+- **Auto-update check** for yt-dlp on launch
+- **Persistent settings and download history**
+- **Theme support** — Light, Dark, and System
 
 ---
 
-## 📦 Bundled Binaries (Required)
+## Bundled Dependencies
 
-yt-dlp and ffmpeg must be placed in `YtDownloader/Assets/` before building.
-They ship with the app so end users never need to install anything separately.
+| Binary | Purpose |
+|--------|---------|
+| `yt-dlp.exe` | Core download engine |
+| `ffmpeg.exe` | Post-processing and format conversion |
+| `AtomicParsley.exe` | Metadata and thumbnail embedding for MP4/M4A |
 
-1. **yt-dlp.exe** → Download from https://github.com/yt-dlp/yt-dlp/releases/latest
-   Get `yt-dlp.exe` and place it at `YtDownloader/Assets/yt-dlp.exe`
-
-2. **ffmpeg.exe** → Download from https://www.gyan.dev/ffmpeg/builds/
-   Get the "essentials" build, unzip, and copy `ffmpeg.exe` to `YtDownloader/Assets/ffmpeg.exe`
-
----
-
-## 🚀 Running the Project
-
-```bash
-# Open YtDownloader.sln in Visual Studio 2022 and press F5
-
-# Or from the terminal:
-cd YtDownloader
-dotnet build
-dotnet run
-```
+No separate installation of these tools is required.
 
 ---
 
-## 📬 Publishing a Release
+## Requirements
 
-A PowerShell publish script is included that builds both projects, stages them into the correct folder layout, and zips everything up ready to distribute:
+- Windows 10 version 1803 (build 17763) or later
+- x86, x64, or ARM64
 
-```powershell
-cd YtDownloader
-.\cleanpublish2.ps1 -Version "1.0.3"
+### To build from source
+- Visual Studio 2022
+- Windows App SDK workload
+- .NET 8 SDK
+
+---
+
+## Project Structure
 ```
-
-Output is written to `dist\YtDownloader-v1.0.3.zip`. The ZIP structure is:
-
-```
-YtDownloader-v1.0.3.zip
-├── YtDownloader.exe        ← Launcher — users double-click this
-├── README.txt
-└── YtDownloader\           ← Main app + runtime — do not delete
+YtDownloader/          # Main WinUI 3 application
+  Assets/              # Bundled binaries (yt-dlp, ffmpeg, AtomicParsley)
+  Models/              # Data models (DownloadOptions, queue items, etc.)
+  Services/            # YtDlpService, AppSettings, NotificationService, etc.
+  ViewModels/          # MVVM view models (CommunityToolkit.Mvvm)
+  Views/               # XAML pages (DownloadPage, AdvancedPage, SettingsPage, HistoryPage)
+YtDownloaderLauncher/  # Lightweight launcher executable
 ```
 
 ---
 
-## 🏗 Architecture
+## Settings
 
-- **MVVM** via `CommunityToolkit.Mvvm` — ViewModels use `[ObservableProperty]` and `[RelayCommand]` source generators
-- **yt-dlp subprocess** — `YtDlpService` launches `yt-dlp.exe`, reads stdout line-by-line, and parses progress with a regex
-- **Dispatcher** — progress callbacks marshal back to the UI thread via `DispatcherQueue`
-- **Persistent history** — `HistoryService` serializes to JSON at `%LocalAppData%\YtDownloader\history.json`
-- **Persistent settings** — `AppSettings` serializes to JSON at `%LocalAppData%\YtDownloader\settings.json`
-- **Auto-updater** — `YtDlpUpdaterService` silently checks GitHub on startup and replaces the bundled `yt-dlp.exe` if a newer version is available
+Settings are persisted to `%LocalAppData%\YtDownloader\settings.json`.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Theme | System | Light / Dark / System |
+| Advanced Mode | Off | Enable the Advanced Mode UI |
+| Show Notifications | On | Windows toast notifications on completion |
+| Auto-Check Updates | On | Check for a newer yt-dlp on launch |
+| Remember Output Folder | On | Restore the last-used output folder |
+| Verbose Logging | Off | Show raw yt-dlp output in a log panel |
 
 ---
 
-## 🔮 Suggested Next Steps
+## Roadmap
 
-- [ ] Download queue for multiple URLs
-- [ ] Subtitle download support
-- [ ] Download again from history
-- [ ] Support for additional sites beyond YouTube
+- [ ] Parallel queue processing (currently sequential)
+- [ ] History replay — re-queue a past download with its original options
+- [ ] Configurable post-download actions (open folder, play file)
+- [ ] Cross-platform support (macOS / Linux)
