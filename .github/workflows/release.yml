@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - r"release-v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
+      - "release-v*"
 
 jobs:
   release:
@@ -28,6 +28,23 @@ jobs:
         id: version
         shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#release-v}" >> $GITHUB_OUTPUT
+
+      - name: Validate SemVer 2.0.0 
+        run: | 
+          BRANCH=${{ steps.version.outputs.VERSION }}
+          
+          # Extract version part after "release-v" 
+          
+          VERSION="${BRANCH#release-v}" 
+          
+          SEMVER_REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\ (-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)\ (\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?\ (\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$' 
+          
+          if [[ ! "$VERSION" =~ $SEMVER_REGEX ]]; then 
+            echo "❌ Invalid semantic version: $VERSION" 
+            exit 1 
+          fi 
+          
+          echo "✅ Valid semantic version: $VERSION"
 
       - name: Restore NuGet packages
         run: dotnet restore YtDownloader/YtDownloader.sln
