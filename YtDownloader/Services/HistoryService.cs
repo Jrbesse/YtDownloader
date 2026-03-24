@@ -46,6 +46,8 @@ public class HistoryService
     /// <summary>Internal constructor for unit tests — uses the supplied path instead of AppData.</summary>
     internal HistoryService(string storagePath)
     {
+        if (string.IsNullOrWhiteSpace(storagePath))
+            throw new ArgumentException("Storage path must not be null or whitespace.", nameof(storagePath));
         _overridePath = storagePath;
         Load();
     }

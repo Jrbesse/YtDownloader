@@ -82,6 +82,8 @@ public partial class AppSettings : ObservableObject
     /// <summary>Internal constructor for unit tests — uses the supplied path instead of AppData.</summary>
     internal AppSettings(string settingsPath)
     {
+        if (string.IsNullOrWhiteSpace(settingsPath))
+            throw new ArgumentException("Settings path must not be null or whitespace.", nameof(settingsPath));
         _overridePath = settingsPath;
         Load();
     }
