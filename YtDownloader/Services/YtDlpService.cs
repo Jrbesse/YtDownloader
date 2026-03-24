@@ -22,6 +22,12 @@ public class YtDlpService
         @"\[download\]\s+(?<pct>[\d.]+)%\s+of\s+(?<size>[\d.]+\S+)\s+at\s+(?<speed>[\d.]+\S+)\s+ETA\s+(?<eta>\S+)",
         RegexOptions.Compiled);
 
+    // Formats that use -x/--audio-format and are post-processed by yt-dlp's own
+    // audio pipeline; injecting -b:a via --postprocessor-args would conflict with
+    // the format-specific quality handling (e.g. --audio-quality 0 for mp3).
+    private static readonly HashSet<string> AudioOnlyFormats =
+        new(StringComparer.OrdinalIgnoreCase) { "mp3", "wav", "flac", "ogg", "opus", "m4a" };
+
     public async Task DownloadAsync(
         DownloadOptions options,
         Action<DownloadProgress> onProgress,
@@ -139,7 +145,7 @@ public class YtDlpService
         if (!string.IsNullOrEmpty(options.VideoCodec) && options.VideoCodec != "(Auto)")
             ffmpegArgs.Add($"-c:v {MapVideoCodec(options.VideoCodec)}");
 
-        if (!string.IsNullOrEmpty(options.AudioBitrate))
+        if (!string.IsNullOrEmpty(options.AudioBitrate) && !AudioOnlyFormats.Contains(options.Format))
             ffmpegArgs.Add($"-b:a {options.AudioBitrate}");
 
         // Emit all ffmpeg args as a single flag (passing it twice would silently ignore the second)
