@@ -35,8 +35,17 @@ public class HistoryService
 
     public ObservableCollection<DownloadHistoryItem> Items { get; } = new();
 
+    private readonly string? _overridePath;
+
     private HistoryService()
     {
+        Load();
+    }
+
+    /// <summary>Internal constructor for unit tests — uses the supplied path instead of AppData.</summary>
+    internal HistoryService(string storagePath)
+    {
+        _overridePath = storagePath;
         Load();
     }
 
@@ -56,7 +65,7 @@ public class HistoryService
     {
         try
         {
-            var path = StoragePath;   // single call — consistent for the whole load
+            var path = _overridePath ?? StoragePath;   // single call — consistent for the whole load
             LastLoadInfo = $"Resolved path: {path}";
 
             if (!File.Exists(path))
@@ -109,7 +118,7 @@ public class HistoryService
     {
         try
         {
-            var path = StoragePath;
+            var path = _overridePath ?? StoragePath;
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
             var json = JsonSerializer.Serialize(Items.ToList(),

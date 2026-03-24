@@ -29,21 +29,29 @@ public static class BrowserDetectionService
 
             if (string.IsNullOrEmpty(progId)) return null;
 
-            // Order matters: check Edge before Chrome (MSEdgeHTM doesn't contain "chrome",
-            // but double-checking avoids any future ProgId overlap).
-            if (progId.Contains("MSEdge",   StringComparison.OrdinalIgnoreCase)) return "edge";
-            if (progId.Contains("Brave",    StringComparison.OrdinalIgnoreCase)) return "brave";
-            if (progId.Contains("Vivaldi",  StringComparison.OrdinalIgnoreCase)) return "vivaldi";
-            if (progId.Contains("Chromium", StringComparison.OrdinalIgnoreCase)) return "chromium";
-            if (progId.Contains("Chrome",   StringComparison.OrdinalIgnoreCase)) return "chrome";
-            if (progId.Contains("Firefox",  StringComparison.OrdinalIgnoreCase)) return "firefox";
-            if (progId.Contains("Opera",    StringComparison.OrdinalIgnoreCase)) return "opera";
-
-            return null; // Unsupported browser (IE, Safari stub, etc.) — no cookies
+            return MapProgIdToBrowser(progId);
         }
         catch
         {
             return null; // Never crash the app over a best-effort feature
         }
+    }
+
+    /// <summary>
+    /// Maps a Windows browser ProgId string to the corresponding yt-dlp browser name.
+    /// Order matters: Edge is checked before Chrome to avoid any future ProgId overlap.
+    /// Returns null for unsupported or unrecognized browsers.
+    /// </summary>
+    internal static string? MapProgIdToBrowser(string progId)
+    {
+        if (progId.Contains("MSEdge",   StringComparison.OrdinalIgnoreCase)) return "edge";
+        if (progId.Contains("Brave",    StringComparison.OrdinalIgnoreCase)) return "brave";
+        if (progId.Contains("Vivaldi",  StringComparison.OrdinalIgnoreCase)) return "vivaldi";
+        if (progId.Contains("Chromium", StringComparison.OrdinalIgnoreCase)) return "chromium";
+        if (progId.Contains("Chrome",   StringComparison.OrdinalIgnoreCase)) return "chrome";
+        if (progId.Contains("Firefox",  StringComparison.OrdinalIgnoreCase)) return "firefox";
+        if (progId.Contains("Opera",    StringComparison.OrdinalIgnoreCase)) return "opera";
+
+        return null; // Unsupported browser (IE, Safari stub, etc.) — no cookies
     }
 }

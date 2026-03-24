@@ -14,10 +14,14 @@ public partial class AppSettings : ObservableObject
 {
     public static readonly AppSettings Instance = new();
 
-    private static string SettingsPath
+    private readonly string? _overridePath;
+
+    private string SettingsPath
     {
         get
         {
+            if (_overridePath is not null) return _overridePath;
+
             var localAppData =
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
@@ -71,6 +75,13 @@ public partial class AppSettings : ObservableObject
 
     private AppSettings()
     {
+        Load();
+    }
+
+    /// <summary>Internal constructor for unit tests — uses the supplied path instead of AppData.</summary>
+    internal AppSettings(string settingsPath)
+    {
+        _overridePath = settingsPath;
         Load();
     }
 

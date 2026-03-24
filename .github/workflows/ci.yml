@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ── Job 1: Unit tests ──────────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore NuGet packages
+        run: dotnet restore YtDownloader/YtDownloader.sln -p:Platform=x64
+
+      - name: Build test project
+        run: >
+          dotnet build YtDownloader.Tests/YtDownloader.Tests.csproj
+          --no-restore
+          --configuration Release
+          -p:Platform=x64
+
+      - name: Run tests with coverage
+        run: >
+          dotnet test YtDownloader.Tests/YtDownloader.Tests.csproj
+          --no-build
+          --configuration Release
+          -p:Platform=x64
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory TestResults
+          --collect:"XPlat Code Coverage"
+
+      - name: Generate coverage report
+        if: always()
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.3.8
+        with:
+          reports: "TestResults/**/coverage.cobertura.xml"
+          targetdir: CoverageReport
+          reporttypes: "HtmlInline;MarkdownSummaryGithub"
+
+      - name: Write coverage summary to job
+        if: always()
+        shell: bash
+        run: |
+          if [ -f CoverageReport/SummaryGithub.md ]; then
+            cat CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: CoverageReport/
+
+  # ── Job 2: Build the WinUI 3 app ──────────────────────────────────────────
+  build-winui:
+    name: Build WinUI 3 App (Release x64)
+    runs-on: windows-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: dotnet restore YtDownloader/YtDownloader.sln
+
+      - name: Build WinUI app (Release x64)
+        run: >
+          msbuild YtDownloader/YtDownloader.csproj
+          /p:Configuration=Release
+          /p:Platform=x64
+          /p:WindowsAppSDKSelfContained=true
+          /p:RuntimeIdentifier=win-x64
+          /restore:false
+
+      - name: Build Launcher (Release win-x64)
+        run: >
+          dotnet publish YtDownloaderLauncher/YtDownloaderLauncher.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --no-restore

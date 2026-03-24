@@ -1,0 +1,50 @@
+<Project>
+  <!--
+    When YtDownloader.csproj is built as a test dependency
+    (DisableMsixProjectCapabilityAddedByProject=true is passed via AdditionalProperties),
+    the Windows App SDK's CopyLocalFilesOutputGroup calls RemovePayloadDuplicates from
+    Microsoft.Build.AppxPackage.dll, which is only available in Visual Studio — not in the
+    dotnet CLI SDK.
+
+    This override fires AFTER all NuGet/SDK package targets (Directory.Build.targets is
+    imported last), replacing the WASDK version with a simple pass-through that requires
+    no VS tooling.
+  -->
+  <Target Name="CopyLocalFilesOutputGroup"
+          Condition="'$(DisableMsixProjectCapabilityAddedByProject)' == 'true'"
+          Returns="@(CopyLocalFilesOutputGroupOutput)">
+    <ItemGroup>
+      <CopyLocalFilesOutputGroupOutput
+          Include="@(ReferenceCopyLocalPaths)"
+          Condition="'%(ReferenceCopyLocalPaths.Extension)' != '.xml'">
+        <TargetPath>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</TargetPath>
+      </CopyLocalFilesOutputGroupOutput>
+    </ItemGroup>
+  </Target>
+
+  <!-- Stub out MSIX packaging output-group targets that require VS AppxPackage DLLs.
+       These targets call tasks from Microsoft.Build.AppxPackage.dll which is only
+       present when Visual Studio is installed — not in the standalone dotnet CLI SDK. -->
+
+  <Target Name="GetMrtPackagingOutputs"
+          Condition="'$(DisableMsixProjectCapabilityAddedByProject)' == 'true'"
+          Returns="@(PackagingOutputs)" />
+
+  <Target Name="_GetDefaultResourceLanguage"
+          Condition="'$(DisableMsixProjectCapabilityAddedByProject)' == 'true'">
+    <PropertyGroup>
+      <DefaultResourceLanguage Condition="'$(DefaultResourceLanguage)' == ''">$(DefaultLanguage)</DefaultResourceLanguage>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_GetPackageArchitecture"
+          Condition="'$(DisableMsixProjectCapabilityAddedByProject)' == 'true'">
+    <PropertyGroup>
+      <PackageArchitecture Condition="'$(PackageArchitecture)' == ''">$(Platform)</PackageArchitecture>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_ValidateConfiguration"
+          Condition="'$(DisableMsixProjectCapabilityAddedByProject)' == 'true'" />
+
+</Project>

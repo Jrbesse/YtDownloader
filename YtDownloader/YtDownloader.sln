@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YtDownloader", "YtDownloade
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YtDownloaderLauncher", "..\YtDownloaderLauncher\YtDownloaderLauncher.csproj", "{BC41E658-A661-415D-BD11-81FCE3D744FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YtDownloader.Tests", "..\YtDownloader.Tests\YtDownloader.Tests.csproj", "{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -41,6 +43,18 @@ Global
 		{BC41E658-A661-415D-BD11-81FCE3D744FA}.Release|x64.Build.0 = Release|Any CPU
 		{BC41E658-A661-415D-BD11-81FCE3D744FA}.Release|x86.ActiveCfg = Release|Any CPU
 		{BC41E658-A661-415D-BD11-81FCE3D744FA}.Release|x86.Build.0 = Release|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Debug|x64.Build.0 = Debug|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Debug|x86.Build.0 = Debug|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|ARM64.Build.0 = Release|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|x64.ActiveCfg = Release|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|x64.Build.0 = Release|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|x86.ActiveCfg = Release|Any CPU
+		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
