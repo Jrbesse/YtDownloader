@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags:
+    branches:
       - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
@@ -93,6 +93,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
           files: publish/YtDownloader-*-win-x64.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
