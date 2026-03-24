@@ -37,7 +37,7 @@
                         AcceptsReturn="True"
                         Height="120"
                         TextWrapping="Wrap"
-                        VerticalScrollBarVisibility="Auto" />
+                        ScrollViewer.VerticalScrollBarVisibility="Auto" />
                     <TextBlock
                         Text="Paste one URL per line. All items will be processed sequentially."
                         Style="{ThemeResource CaptionTextBlockStyle}"
