@@ -10,7 +10,8 @@ namespace YtDownloader.Services;
 /// </summary>
 public class HistoryService
 {
-    public static readonly HistoryService Instance = new();
+    private static readonly Lazy<HistoryService> _lazyInstance = new(() => new HistoryService());
+    public static HistoryService Instance => _lazyInstance.Value;
 
     // Computed fresh each call — avoids all static initializer ordering issues.
     // Path.Combine with a null first arg was the source of the NullReferenceException.
@@ -35,8 +36,19 @@ public class HistoryService
 
     public ObservableCollection<DownloadHistoryItem> Items { get; } = new();
 
+    private readonly string? _overridePath;
+
     private HistoryService()
     {
+        Load();
+    }
+
+    /// <summary>Internal constructor for unit tests — uses the supplied path instead of AppData.</summary>
+    internal HistoryService(string storagePath)
+    {
+        if (string.IsNullOrWhiteSpace(storagePath))
+            throw new ArgumentException("Storage path must not be null or whitespace.", nameof(storagePath));
+        _overridePath = Path.GetFullPath(storagePath);
         Load();
     }
 
@@ -56,7 +68,7 @@ public class HistoryService
     {
         try
         {
-            var path = StoragePath;   // single call — consistent for the whole load
+            var path = _overridePath ?? StoragePath;   // single call — consistent for the whole load
             LastLoadInfo = $"Resolved path: {path}";
 
             if (!File.Exists(path))
@@ -109,7 +121,7 @@ public class HistoryService
     {
         try
         {
-            var path = StoragePath;
+            var path = _overridePath ?? StoragePath;
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
             var json = JsonSerializer.Serialize(Items.ToList(),

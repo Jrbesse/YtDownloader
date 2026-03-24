@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  release:
+    name: Build and Publish Release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Restore NuGet packages
+        run: dotnet restore YtDownloader/YtDownloader.sln
+
+      - name: Build WinUI app (Release x64)
+        run: >
+          msbuild YtDownloader/YtDownloader.csproj
+          /p:Configuration=Release
+          /p:Platform=x64
+          /p:WindowsAppSDKSelfContained=true
+          /p:RuntimeIdentifier=win-x64
+          /p:Version=${{ steps.version.outputs.VERSION }}
+          /restore:false
+
+      - name: Publish Launcher
+        run: >
+          dotnet publish YtDownloaderLauncher/YtDownloaderLauncher.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --no-restore
+          --output publish/launcher
+
+      - name: Assemble release directory and ZIP
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.VERSION }}"
+          $stagingDir = "publish/YtDownloader-$version"
+          $appSubDir  = "$stagingDir/YtDownloader"
+
+          New-Item -ItemType Directory -Path $appSubDir -Force
+
+          # Copy the published WinUI app output
+          $appOutput = "YtDownloader/bin/x64/Release/net8.0-windows10.0.19041.0/win-x64"
+          if (Test-Path $appOutput) {
+            Copy-Item -Path "$appOutput/*" -Destination $appSubDir -Recurse -Force
+          } else {
+            # Fallback: search for the exe in the build tree
+            $appExe = Get-ChildItem -Path "YtDownloader/bin" -Recurse -Filter "YtDownloader.exe" |
+                      Where-Object { $_.FullName -notlike "*YtDownloaderLauncher*" } |
+                      Select-Object -First 1
+            if (-not $appExe) {
+              Write-Error "Could not locate YtDownloader.exe in build output. Aborting."
+              exit 1
+            }
+            # Copy contents of the exe's directory (not the directory itself)
+            Copy-Item -Path "$(Split-Path $appExe.FullName)/*" -Destination $appSubDir -Recurse -Force
+          }
+
+          # Copy the launcher exe to the top level
+          $launcherExe = "publish/launcher/YtDownloader.exe"
+          if (-not (Test-Path $launcherExe)) {
+            Write-Error "Could not locate published launcher at '$launcherExe'. Aborting."
+            exit 1
+          }
+          Copy-Item -Path $launcherExe -Destination "$stagingDir/YtDownloader.exe"
+
+          # Create the ZIP
+          $zipName = "YtDownloader-v$version-win-x64.zip"
+          Compress-Archive -Path "$stagingDir/*" -DestinationPath "publish/$zipName" -Force
+          Write-Host "Created publish/$zipName"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/YtDownloader-*-win-x64.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true

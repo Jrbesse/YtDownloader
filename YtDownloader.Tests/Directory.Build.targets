@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    Windows App SDK 1.5 sets RuntimeIdentifiers to include win10-arm and win10-arm-aot
+    via its own .props/.targets. When dotnet build evaluates the test project it tries
+    to resolve runtime packs for all of them, which fails if ARM packs are not installed.
+
+    This file runs after all other imports and restricts the RID list to x64-only,
+    preventing ARM resolution failures in the test project.
+
+    The UseRidGraph=true in the csproj allows win10-x64/win10-x86 to be recognized;
+    this override keeps only the RIDs we actually need to run tests on CI and dev machines.
+  -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <!-- Import root-level Directory.Build.targets for shared Windows App SDK task stubs -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
+</Project>

@@ -92,7 +92,7 @@ public class YtDlpService
         onProgress(new DownloadProgress { Status = "Done!", Percent = 100, IsIndeterminate = false });
     }
 
-    private static List<string> BuildArguments(DownloadOptions options)
+    internal static List<string> BuildArguments(DownloadOptions options)
     {
         var args       = new List<string>();
         var ffmpegArgs = new List<string>(); // merged into a single --postprocessor-args at the end
@@ -253,7 +253,7 @@ public class YtDlpService
         _            => "copy",
     };
 
-    private static DownloadProgress ParseProgress(string line)
+    internal static DownloadProgress ParseProgress(string line)
     {
         if (line.StartsWith("[ffmpeg]") || line.StartsWith("[Merger]"))
         {
