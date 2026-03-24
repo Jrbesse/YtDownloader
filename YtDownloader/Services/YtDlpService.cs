@@ -194,7 +194,8 @@ public class YtDlpService
         if (options.WriteSubtitles || options.EmbedSubtitles)
         {
             args.Add(options.EmbedSubtitles ? "--embed-subs" : "--write-subs");
-            args.Add("--sub-langs"); args.Add(options.SubtitleLanguage);
+            var subLangs = string.IsNullOrWhiteSpace(options.SubtitleLanguage) ? "en" : options.SubtitleLanguage;
+            args.Add("--sub-langs"); args.Add(subLangs);
         }
         if (options.WriteAutoSubtitles)
             args.Add("--write-auto-subs");
