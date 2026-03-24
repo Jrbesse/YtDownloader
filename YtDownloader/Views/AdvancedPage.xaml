@@ -17,6 +17,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="260" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- ── ROW 0 : scrollable form controls ── -->
@@ -361,6 +362,24 @@
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
+
+        <!-- ── ROW 2 : verbose log ── -->
+        <Border
+            Grid.Row="2"
+            Visibility="{x:Bind ViewModel.LogVisibility, Mode=OneWay}"
+            Margin="32,0,32,16"
+            Background="{ThemeResource SystemFillColorSolidNeutralBackgroundBrush}"
+            CornerRadius="6"
+            Padding="8">
+            <ScrollViewer MaxHeight="180" VerticalScrollBarVisibility="Auto">
+                <TextBlock
+                    Text="{x:Bind ViewModel.LogText, Mode=OneWay}"
+                    FontFamily="Consolas"
+                    FontSize="11"
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </ScrollViewer>
+        </Border>
 
     </Grid>
 </Page>

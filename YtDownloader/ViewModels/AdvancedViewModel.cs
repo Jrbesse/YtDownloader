@@ -108,6 +108,11 @@ public partial class AdvancedViewModel : ObservableObject
     [ObservableProperty] private bool _isQueueRunning = false;
     [ObservableProperty] private Visibility _stopVisibility = Visibility.Collapsed;
 
+    // ── Verbose log ───────────────────────────────────────────────────────────
+
+    [ObservableProperty] private string     _logText       = string.Empty;
+    [ObservableProperty] private Visibility _logVisibility = Visibility.Collapsed;
+
     public AdvancedViewModel()
     {
         if (AppSettings.Instance.RememberOutputFolder
@@ -156,9 +161,11 @@ public partial class AdvancedViewModel : ObservableObject
         foreach (var url in urls)
             Queue.Add(new AdvancedDownloadQueueItem { Url = url });
 
-        _queueCts    = new CancellationTokenSource();
-        IsQueueRunning  = true;
-        StopVisibility  = Visibility.Visible;
+        _queueCts      = new CancellationTokenSource();
+        IsQueueRunning = true;
+        StopVisibility = Visibility.Visible;
+        LogText        = string.Empty;
+        LogVisibility  = AppSettings.Instance.VerboseLogging ? Visibility.Visible : Visibility.Collapsed;
         StartQueueCommand.NotifyCanExecuteChanged();
 
         foreach (var item in Queue)
@@ -259,6 +266,9 @@ public partial class AdvancedViewModel : ObservableObject
             item.IsIndeterminate = progress.IsIndeterminate;
             item.Percent         = progress.Percent;
             item.Detail          = progress.Detail;
+
+            if (AppSettings.Instance.VerboseLogging && !string.IsNullOrEmpty(progress.Detail))
+                LogText += progress.Detail + "\n";
         });
     }
 }

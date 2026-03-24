@@ -107,6 +107,9 @@
                         <ToggleSwitch
                             Header="Show storage diagnostics on History page"
                             IsOn="{x:Bind ViewModel.ShowDiagnostics, Mode=TwoWay}" />
+                        <ToggleSwitch
+                            Header="Show verbose yt-dlp output during downloads"
+                            IsOn="{x:Bind ViewModel.VerboseLogging, Mode=TwoWay}" />
                     </StackPanel>
                 </Border>
             </StackPanel>

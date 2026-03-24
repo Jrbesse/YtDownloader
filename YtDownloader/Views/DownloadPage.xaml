@@ -218,6 +218,22 @@
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
 
+            <!-- ── VERBOSE LOG ── -->
+            <Border
+                Visibility="{x:Bind ViewModel.LogVisibility, Mode=OneWay}"
+                Background="{ThemeResource SystemFillColorSolidNeutralBackgroundBrush}"
+                CornerRadius="6"
+                Padding="8">
+                <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                    <TextBlock
+                        Text="{x:Bind ViewModel.LogText, Mode=OneWay}"
+                        FontFamily="Consolas"
+                        FontSize="11"
+                        TextWrapping="Wrap"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </ScrollViewer>
+            </Border>
+
             <!-- ── DONE STATE ── -->
             <StackPanel
                 Spacing="12"
