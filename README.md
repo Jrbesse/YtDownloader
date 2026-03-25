@@ -2,7 +2,7 @@
 
 A portable Windows desktop application for downloading videos and audio from YouTube and other sites supported by yt-dlp.
 
-Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required — all dependencies are bundled.
+Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required — all dependencies are bundled or downloaded on demand.
 
 ---
 
@@ -21,7 +21,7 @@ Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required —
 - **Audio bitrate control** — 128k, 192k, 320k
 - **Metadata embedding** — title, uploader, date via `--embed-metadata`
 - **Thumbnail embedding and export**
-- **SponsorBlock** — automatically remove sponsor segments
+- **SponsorBlock** — automatically remove sponsor segments (ffprobe downloaded on demand on first use)
 - **Subtitle support** — download, embed, or write auto-generated subtitles
 - **Playlist range** — specify start and end items for playlist downloads
 - **Custom output templates** — full yt-dlp `--output` template support
@@ -43,6 +43,7 @@ Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required —
 | `yt-dlp.exe` | Core download engine |
 | `ffmpeg.exe` | Post-processing and format conversion |
 | `AtomicParsley.exe` | Metadata and thumbnail embedding for MP4/M4A |
+| `ffprobe.exe` | Video duration probing for SponsorBlock — downloaded automatically from [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) on first use; SHA256-verified before extraction |
 
 No separate installation of these tools is required.
 
@@ -51,25 +52,41 @@ No separate installation of these tools is required.
 ## Requirements
 
 - Windows 10 version 1803 (build 17763) or later
-- x86, x64, or ARM64
+- **x64** (the distributed release targets `win-x64` only)
 
 ### To build from source
 - Visual Studio 2022
 - Windows App SDK workload
 - .NET 8 SDK
 
+> **Note:** The project file lists x86 and ARM64 platform targets, but neither CI nor the release pipeline currently builds or tests those configurations. Building for non-x64 targets from source is unsupported and may require additional adjustments.
+
 ---
 
 ## Project Structure
+
 ```
 YtDownloader/          # Main WinUI 3 application
-  Assets/              # Bundled binaries (yt-dlp, ffmpeg, AtomicParsley)
+  Assets/              # Bundled binaries (yt-dlp, ffmpeg, AtomicParsley; ffprobe on demand)
   Models/              # Data models (DownloadOptions, queue items, etc.)
-  Services/            # YtDlpService, AppSettings, NotificationService, etc.
+  Services/            # YtDlpService, FfprobeDownloaderService, AppSettings, etc.
   ViewModels/          # MVVM view models (CommunityToolkit.Mvvm)
   Views/               # XAML pages (DownloadPage, AdvancedPage, SettingsPage, HistoryPage)
+YtDownloader.Tests/    # xUnit test suite (no network or process calls)
 YtDownloaderLauncher/  # Lightweight launcher executable
 ```
+
+---
+
+## Testing
+
+The project ships a unit test suite under `YtDownloader.Tests/` using **xUnit** and **FluentAssertions**. Tests cover all major services and models using in-memory fakes — no network calls, no spawned processes.
+
+```
+dotnet test YtDownloader.Tests/YtDownloader.Tests.csproj -p:Platform=x64
+```
+
+CI runs the full test suite (with code coverage) and a Release x64 WinUI build on every push and pull request via GitHub Actions. Releases are published automatically when a `v*.*.*` tag is pushed.
 
 ---
 

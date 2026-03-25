@@ -17,6 +17,7 @@ public class YtDlpService
 
     public static string YtDlpPath         => Path.Combine(AppDir, "Assets", "yt-dlp.exe");
     public static string FfmpegPath        => Path.Combine(AppDir, "Assets", "ffmpeg.exe");
+    public static string FfprobePath       => Path.Combine(AppDir, "Assets", "ffprobe.exe");
     public static string AtomicParsleyPath => Path.Combine(AppDir, "Assets", "AtomicParsley.exe");
 
     private static readonly Regex ProgressRegex = new(
@@ -34,6 +35,36 @@ public class YtDlpService
         Action<DownloadProgress> onProgress,
         CancellationToken ct = default)
     {
+        if (options.RemoveSponsorBlock)
+        {
+            // Forward ffprobe download status to the caller and ensure we clean up the subscription.
+            void ForwardStatus(string msg) => onProgress(new DownloadProgress
+            {
+                Status          = "Preparing…",
+                Detail          = msg,
+                IsIndeterminate = true,
+            });
+
+            FfprobeDownloaderService.Instance.StatusChanged += ForwardStatus;
+            bool ffprobeReady;
+            try
+            {
+                ffprobeReady = await FfprobeDownloaderService.Instance.EnsureAvailableAsync(ct);
+            }
+            finally
+            {
+                FfprobeDownloaderService.Instance.StatusChanged -= ForwardStatus;
+            }
+
+            // Propagate cancellation immediately rather than starting a doomed yt-dlp process.
+            ct.ThrowIfCancellationRequested();
+
+            if (!ffprobeReady)
+                throw new InvalidOperationException(
+                    "ffprobe could not be downloaded. SponsorBlock requires ffprobe — " +
+                    "please install it manually or check your network connection.");
+        }
+
         var psi = new ProcessStartInfo
         {
             FileName               = YtDlpPath,
