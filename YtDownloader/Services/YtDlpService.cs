@@ -36,7 +36,34 @@ public class YtDlpService
         CancellationToken ct = default)
     {
         if (options.RemoveSponsorBlock)
-            await FfprobeDownloaderService.Instance.EnsureAvailableAsync(ct);
+        {
+            // Forward ffprobe download status to the caller and ensure we clean up the subscription.
+            void ForwardStatus(string msg) => onProgress(new DownloadProgress
+            {
+                Status          = "Preparing…",
+                Detail          = msg,
+                IsIndeterminate = true,
+            });
+
+            FfprobeDownloaderService.Instance.StatusChanged += ForwardStatus;
+            bool ffprobeReady;
+            try
+            {
+                ffprobeReady = await FfprobeDownloaderService.Instance.EnsureAvailableAsync(ct);
+            }
+            finally
+            {
+                FfprobeDownloaderService.Instance.StatusChanged -= ForwardStatus;
+            }
+
+            // Propagate cancellation immediately rather than starting a doomed yt-dlp process.
+            ct.ThrowIfCancellationRequested();
+
+            if (!ffprobeReady)
+                throw new InvalidOperationException(
+                    "ffprobe could not be downloaded. SponsorBlock requires ffprobe — " +
+                    "please install it manually or check your network connection.");
+        }
 
         var psi = new ProcessStartInfo
         {

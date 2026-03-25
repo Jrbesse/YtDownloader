@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using FluentAssertions;
 using YtDownloader.Services;
@@ -46,20 +47,34 @@ public class FfprobeDownloaderServiceTests : IDisposable
         return ms.ToArray();
     }
 
-    private static string ReleasesJson(string assetName, string downloadUrl) =>
-        $$"""{"assets":[{"name":"{{assetName}}","browser_download_url":"{{downloadUrl}}"}]}""";
+    /// <summary>
+    /// Builds a release JSON containing the essentials zip asset and a checksums asset.
+    /// <paramref name="checksumsUrl"/> defaults to a placeholder; supply a real value when needed.
+    /// </summary>
+    private static string ReleasesJson(
+        string assetName,
+        string downloadUrl,
+        string checksumsUrl = "https://example.com/checksums.sha256") =>
+        $$"""{"assets":[{"name":"{{assetName}}","browser_download_url":"{{downloadUrl}}"},{"name":"checksums.sha256","browser_download_url":"{{checksumsUrl}}"}]}""";
 
     /// <summary>
-    /// Two-request client: first returns <paramref name="releasesJson"/>,
-    /// second returns the zip bytes.
+    /// Three-request client: releases JSON → checksums file → zip bytes.
+    /// The checksums content is derived automatically from the zip's actual SHA256.
     /// </summary>
-    private static HttpClient BuildSuccessClient(string releasesJson, byte[] zipBytes)
+    private static HttpClient BuildSuccessClient(string releasesJson, string assetName, byte[] zipBytes)
     {
+        var hash             = Convert.ToHexString(SHA256.HashData(zipBytes)).ToLowerInvariant();
+        var checksumsContent = $"{hash}  {assetName}\n";
+
         var handler = new SequentialMockHandler(
         [
             new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(releasesJson, Encoding.UTF8, "application/json"),
+            },
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(checksumsContent),
             },
             new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -93,13 +108,12 @@ public class FfprobeDownloaderServiceTests : IDisposable
     [Fact]
     public async Task EnsureAvailableAsync_WhenFfprobeMissing_DownloadsAndExtractsCorrectly()
     {
+        var assetName   = "ffmpeg-n7.1-latest-win64-lgpl-essentials_build.zip";
         var fakeContent = "fake-ffprobe-binary"u8.ToArray();
         var zipBytes    = BuildFakeZip("ffmpeg-build/bin/ffprobe.exe", fakeContent);
-        var json        = ReleasesJson(
-            "ffmpeg-n7.1-latest-win64-lgpl-essentials_build.zip",
-            "https://example.com/build.zip");
+        var json        = ReleasesJson(assetName, "https://example.com/build.zip");
 
-        var svc    = new FfprobeDownloaderService(BuildSuccessClient(json, zipBytes), FfprobePath);
+        var svc    = new FfprobeDownloaderService(BuildSuccessClient(json, assetName, zipBytes), FfprobePath);
         var result = await svc.EnsureAvailableAsync();
 
         result.Should().BeTrue();
@@ -147,12 +161,11 @@ public class FfprobeDownloaderServiceTests : IDisposable
     [Fact]
     public async Task EnsureAvailableAsync_WhenZipHasNoFfprobeEntry_ReturnsFalseAndCleansUpTempZip()
     {
-        var zipBytes = BuildFakeZip("ffmpeg-build/bin/ffmpeg.exe", "not-ffprobe"u8.ToArray());
-        var json     = ReleasesJson(
-            "ffmpeg-n7.1-latest-win64-lgpl-essentials_build.zip",
-            "https://example.com/build.zip");
+        var assetName = "ffmpeg-n7.1-latest-win64-lgpl-essentials_build.zip";
+        var zipBytes  = BuildFakeZip("ffmpeg-build/bin/ffmpeg.exe", "not-ffprobe"u8.ToArray());
+        var json      = ReleasesJson(assetName, "https://example.com/build.zip");
 
-        var svc      = new FfprobeDownloaderService(BuildSuccessClient(json, zipBytes), FfprobePath);
+        var svc      = new FfprobeDownloaderService(BuildSuccessClient(json, assetName, zipBytes), FfprobePath);
         var messages = new List<string>();
         svc.StatusChanged += messages.Add;
 
@@ -183,33 +196,42 @@ public class FfprobeDownloaderServiceTests : IDisposable
     [Fact]
     public async Task EnsureAvailableAsync_FiresStatusChangedEventsInOrder()
     {
+        var assetName   = "ffmpeg-n7.1-latest-win64-lgpl-essentials_build.zip";
         var fakeContent = "binary"u8.ToArray();
         var zipBytes    = BuildFakeZip("bin/ffprobe.exe", fakeContent);
-        var json        = ReleasesJson(
-            "ffmpeg-n7.1-latest-win64-lgpl-essentials_build.zip",
-            "https://example.com/build.zip");
+        var json        = ReleasesJson(assetName, "https://example.com/build.zip");
 
-        var svc      = new FfprobeDownloaderService(BuildSuccessClient(json, zipBytes), FfprobePath);
+        var svc      = new FfprobeDownloaderService(BuildSuccessClient(json, assetName, zipBytes), FfprobePath);
         var messages = new List<string>();
         svc.StatusChanged += messages.Add;
 
         await svc.EnsureAvailableAsync();
 
-        messages.Should().Contain(m => m.Contains("not found"));
-        messages.Should().Contain(m => m.Contains("Downloading"));
-        messages.Should().Contain(m => m.Contains("successfully"));
+        // Verify presence
+        var iNotFound    = messages.FindIndex(m => m.Contains("not found"));
+        var iDownloading = messages.FindIndex(m => m.Contains("Downloading"));
+        var iSuccess     = messages.FindIndex(m => m.Contains("successfully"));
+
+        iNotFound   .Should().BeGreaterThanOrEqualTo(0, "\"not found\" message must be emitted");
+        iDownloading.Should().BeGreaterThanOrEqualTo(0, "\"Downloading\" message must be emitted");
+        iSuccess    .Should().BeGreaterThanOrEqualTo(0, "\"successfully\" message must be emitted");
+
+        // Verify ordering
+        iNotFound.Should().BeLessThan(iDownloading,
+            "\"not found\" must fire before \"Downloading\"");
+        iDownloading.Should().BeLessThan(iSuccess,
+            "\"Downloading\" must fire before \"successfully\"");
     }
 
     [Fact]
     public async Task EnsureAvailableAsync_AssetAndEntryNameMatchingIsCaseInsensitive()
     {
+        var assetName   = "FFMPEG-N7.1-LATEST-WIN64-LGPL-ESSENTIALS_BUILD.ZIP";
         var fakeContent = "binary"u8.ToArray();
         var zipBytes    = BuildFakeZip("bin/FFPROBE.EXE", fakeContent);
-        var json        = ReleasesJson(
-            "FFMPEG-N7.1-LATEST-WIN64-LGPL-ESSENTIALS_BUILD.ZIP",
-            "https://example.com/build.zip");
+        var json        = ReleasesJson(assetName, "https://example.com/build.zip");
 
-        var svc    = new FfprobeDownloaderService(BuildSuccessClient(json, zipBytes), FfprobePath);
+        var svc    = new FfprobeDownloaderService(BuildSuccessClient(json, assetName, zipBytes), FfprobePath);
         var result = await svc.EnsureAvailableAsync();
 
         result.Should().BeTrue("matching should be case-insensitive");
