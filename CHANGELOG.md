@@ -8,17 +8,24 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Comprehensive unit test suite (`YtDownloader.Tests`)
-- GitHub Actions CI workflow — tests and WinUI build run on every push and PR
+- Comprehensive unit test suite (`YtDownloader.Tests`) — xUnit + FluentAssertions, no network calls or process spawning
+- GitHub Actions CI workflow — tests (with code coverage) and WinUI build run on every push and PR
 - GitHub Actions release workflow — tagged `v*.*.*` pushes auto-create a GitHub Release with ZIP artifact
 - Branch protection rules documentation (see `BRANCH_PROTECTION.md`)
 - PR template with testing checklist
+- `FfprobeDownloaderService` — downloads `ffprobe.exe` on demand from a pinned [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) release when SponsorBlock is first used; verifies SHA256 before extraction and cleans up on failure
+
+### Fixed
+
+- SponsorBlock downloads failing with exit code 1 ("ffprobe not found") — yt-dlp's `ModifyChaptersPP` requires `ffprobe` to determine video duration when removing sponsor segments; the app now ensures it is present before starting the download
 
 ### Changed
 
 - `YtDlpService.BuildArguments` and `ParseProgress` promoted to `internal` for testability
 - `BrowserDetectionService.MapProgIdToBrowser` extracted as `internal static` method
 - `HistoryService` and `AppSettings` gained internal test constructors with path injection
+- `YtDlpService.DownloadAsync` now forwards ffprobe download status into the progress callback and throws if ffprobe is unavailable, rather than silently starting yt-dlp with a missing dependency
+- README updated: removed inaccurate ARM64/x86 release support claim; added `ffprobe.exe` to dependency table; added Testing section covering the unit test suite and CI pipeline; updated project structure to include `YtDownloader.Tests/`
 
 ---
 
