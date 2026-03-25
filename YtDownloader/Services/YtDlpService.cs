@@ -17,6 +17,7 @@ public class YtDlpService
 
     public static string YtDlpPath         => Path.Combine(AppDir, "Assets", "yt-dlp.exe");
     public static string FfmpegPath        => Path.Combine(AppDir, "Assets", "ffmpeg.exe");
+    public static string FfprobePath       => Path.Combine(AppDir, "Assets", "ffprobe.exe");
     public static string AtomicParsleyPath => Path.Combine(AppDir, "Assets", "AtomicParsley.exe");
 
     private static readonly Regex ProgressRegex = new(
@@ -34,6 +35,9 @@ public class YtDlpService
         Action<DownloadProgress> onProgress,
         CancellationToken ct = default)
     {
+        if (options.RemoveSponsorBlock)
+            await FfprobeDownloaderService.Instance.EnsureAvailableAsync(ct);
+
         var psi = new ProcessStartInfo
         {
             FileName               = YtDlpPath,
