@@ -75,11 +75,13 @@ if (Test-Path $LauncherProjectFile) {
     $useBatFallback = $true
 }
 
-# 4. Verify yt-dlp and ffmpeg
-$ytDlp  = Join-Path $PublishDir "Assets\yt-dlp.exe"
-$ffmpeg = Join-Path $PublishDir "Assets\ffmpeg.exe"
-if (-not (Test-Path $ytDlp))  { Write-Host "WARNING: Assets\yt-dlp.exe not found." -ForegroundColor Red }
-if (-not (Test-Path $ffmpeg)) { Write-Host "WARNING: Assets\ffmpeg.exe not found." -ForegroundColor Red }
+# 4. Verify yt-dlp, ffmpeg, and ffprobe
+$ytDlp   = Join-Path $PublishDir "Assets\yt-dlp.exe"
+$ffmpeg  = Join-Path $PublishDir "Assets\ffmpeg.exe"
+$ffprobe = Join-Path $PublishDir "Assets\ffprobe.exe"
+if (-not (Test-Path $ytDlp))   { Write-Host "WARNING: Assets\yt-dlp.exe not found." -ForegroundColor Red }
+if (-not (Test-Path $ffmpeg))  { Write-Host "WARNING: Assets\ffmpeg.exe not found." -ForegroundColor Red }
+if (-not (Test-Path $ffprobe)) { Write-Host "WARNING: Assets\ffprobe.exe not found." -ForegroundColor Red }
 
 # 5. Build staging layout
 Write-Host "Building staging layout..." -ForegroundColor Yellow

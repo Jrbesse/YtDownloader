@@ -397,7 +397,7 @@ public class YtDlpService
         }
     }
 
-    /// <summary>Gets the version string for yt-dlp, ffmpeg, or AtomicParsley.</summary>
+    /// <summary>Gets the version string for yt-dlp, ffmpeg, ffprobe, or AtomicParsley.</summary>
     public static async Task<string?> GetVersionAsync(string tool)
     {
         try
@@ -412,6 +412,11 @@ public class YtDlpService
             {
                 path = AtomicParsleyPath;
                 arg  = "--version";
+            }
+            else if (tool == "ffprobe")
+            {
+                path = FfprobePath;
+                arg  = "-version";
             }
             else // ffmpeg
             {

@@ -36,6 +36,14 @@
                                 Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
                         </Grid>
                         <Grid>
+                            <TextBlock Text="ffprobe" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                            <TextBlock
+                                Text="{x:Bind ViewModel.FfprobeVersion, Mode=OneWay}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                        </Grid>
+                        <Grid>
                             <TextBlock Text="AtomicParsley" VerticalAlignment="Center" HorizontalAlignment="Left" />
                             <TextBlock
                                 Text="{x:Bind ViewModel.AtomicParsleyVersion, Mode=OneWay}"
