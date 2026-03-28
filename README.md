@@ -69,7 +69,7 @@ No separate installation of these tools is required.
 YtDownloader/          # Main WinUI 3 application
   Assets/              # Bundled binaries (yt-dlp, ffmpeg, ffprobe, AtomicParsley)
   Models/              # Data models (DownloadOptions, queue items, etc.)
-  Services/            # YtDlpService, FfprobeDownloaderService, AppSettings, etc.
+  Services/            # YtDlpService, AppSettings, etc.
   ViewModels/          # MVVM view models (CommunityToolkit.Mvvm)
   Views/               # XAML pages (DownloadPage, AdvancedPage, SettingsPage, HistoryPage)
 YtDownloader.Tests/    # xUnit test suite (no network or process calls)
