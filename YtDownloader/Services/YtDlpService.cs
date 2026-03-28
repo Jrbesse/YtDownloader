@@ -17,6 +17,7 @@ public class YtDlpService
 
     public static string YtDlpPath         => Path.Combine(AppDir, "Assets", "yt-dlp.exe");
     public static string FfmpegPath        => Path.Combine(AppDir, "Assets", "ffmpeg.exe");
+    public static string FfprobePath       => Path.Combine(AppDir, "Assets", "ffprobe.exe");
     public static string AtomicParsleyPath => Path.Combine(AppDir, "Assets", "AtomicParsley.exe");
 
     private static readonly Regex ProgressRegex = new(
@@ -366,7 +367,7 @@ public class YtDlpService
         }
     }
 
-    /// <summary>Gets the version string for yt-dlp, ffmpeg, or AtomicParsley.</summary>
+    /// <summary>Gets the version string for yt-dlp, ffmpeg, ffprobe, or AtomicParsley.</summary>
     public static async Task<string?> GetVersionAsync(string tool)
     {
         try
@@ -381,6 +382,11 @@ public class YtDlpService
             {
                 path = AtomicParsleyPath;
                 arg  = "--version";
+            }
+            else if (tool == "ffprobe")
+            {
+                path = FfprobePath;
+                arg  = "-version";
             }
             else // ffmpeg
             {

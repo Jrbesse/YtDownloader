@@ -8,6 +8,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     [ObservableProperty] private string _ytDlpVersion  = "Checking…";
     [ObservableProperty] private string _ffmpegVersion = "Checking…";
+    [ObservableProperty] private string _ffprobeVersion = "Checking…";
     [ObservableProperty] private string _atomicParsleyVersion = "Checking…";
     [ObservableProperty] private string _updateStatus  = string.Empty;
     [ObservableProperty] private bool   _isUpdating    = false;
@@ -77,9 +78,10 @@ public partial class SettingsViewModel : ObservableObject
 
     public async Task LoadVersionsAsync()
     {
-        YtDlpVersion           = await YtDlpService.GetVersionAsync("yt-dlp")  ?? "Not found";
-        FfmpegVersion          = await YtDlpService.GetVersionAsync("ffmpeg")  ?? "Not found";
-        AtomicParsleyVersion   = await YtDlpService.GetVersionAsync("AtomicParsley") ?? "Not found";
+        YtDlpVersion         = await YtDlpService.GetVersionAsync("yt-dlp")        ?? "Not found";
+        FfmpegVersion        = await YtDlpService.GetVersionAsync("ffmpeg")        ?? "Not found";
+        FfprobeVersion       = await YtDlpService.GetVersionAsync("ffprobe")       ?? "Not found";
+        AtomicParsleyVersion = await YtDlpService.GetVersionAsync("AtomicParsley") ?? "Not found";
     }
 
     [RelayCommand]
