@@ -20,7 +20,7 @@ Four binaries must be placed in `Assets/` before the project will run:
 
 ```
 YtDownloader/
-├── Assets/             yt-dlp.exe, ffmpeg.exe, AtomicParsley.exe go here
+├── Assets/             yt-dlp.exe, ffmpeg.exe, ffprobe.exe, AtomicParsley.exe go here
 ├── Models/             Plain data classes
 ├── Services/           yt-dlp subprocess, history, settings, auto-updater
 ├── ViewModels/         MVVM logic for each page
