@@ -21,7 +21,7 @@ Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required —
 - **Audio bitrate control** — 128k, 192k, 320k
 - **Metadata embedding** — title, uploader, date via `--embed-metadata`
 - **Thumbnail embedding and export**
-- **SponsorBlock** — automatically remove sponsor segments
+- **SponsorBlock** — automatically remove sponsor segments (ffprobe is bundled)
 - **Subtitle support** — download, embed, or write auto-generated subtitles
 - **Playlist range** — specify start and end items for playlist downloads
 - **Custom output templates** — full yt-dlp `--output` template support
@@ -43,7 +43,7 @@ Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required —
 | `yt-dlp.exe` | Core download engine |
 | `ffmpeg.exe` | Post-processing and format conversion |
 | `AtomicParsley.exe` | Metadata and thumbnail embedding for MP4/M4A |
-| `ffprobe.exe` | Video duration probing for SponsorBlock |
+| `ffprobe.exe` | Video duration probing for SponsorBlock — bundled with the app |
 
 No separate installation of these tools is required.
 
