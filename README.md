@@ -2,7 +2,7 @@
 
 A portable Windows desktop application for downloading videos and audio from YouTube and other sites supported by yt-dlp.
 
-Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required — all dependencies are bundled or downloaded on demand.
+Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required — all dependencies are bundled.
 
 ---
 
@@ -21,7 +21,7 @@ Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required —
 - **Audio bitrate control** — 128k, 192k, 320k
 - **Metadata embedding** — title, uploader, date via `--embed-metadata`
 - **Thumbnail embedding and export**
-- **SponsorBlock** — automatically remove sponsor segments (ffprobe downloaded on demand on first use)
+- **SponsorBlock** — automatically remove sponsor segments (ffprobe is bundled)
 - **Subtitle support** — download, embed, or write auto-generated subtitles
 - **Playlist range** — specify start and end items for playlist downloads
 - **Custom output templates** — full yt-dlp `--output` template support
@@ -43,7 +43,7 @@ Built with **WinUI 3**, **.NET 8**, and **yt-dlp**. No installation required —
 | `yt-dlp.exe` | Core download engine |
 | `ffmpeg.exe` | Post-processing and format conversion |
 | `AtomicParsley.exe` | Metadata and thumbnail embedding for MP4/M4A |
-| `ffprobe.exe` | Video duration probing for SponsorBlock — downloaded automatically from [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) on first use; SHA256-verified before extraction |
+| `ffprobe.exe` | Video duration probing for SponsorBlock — bundled with the app |
 
 No separate installation of these tools is required.
 
@@ -67,7 +67,7 @@ No separate installation of these tools is required.
 
 ```
 YtDownloader/          # Main WinUI 3 application
-  Assets/              # Bundled binaries (yt-dlp, ffmpeg, AtomicParsley; ffprobe on demand)
+  Assets/              # Bundled binaries (yt-dlp, ffmpeg, ffprobe, AtomicParsley)
   Models/              # Data models (DownloadOptions, queue items, etc.)
   Services/            # YtDlpService, FfprobeDownloaderService, AppSettings, etc.
   ViewModels/          # MVVM view models (CommunityToolkit.Mvvm)
