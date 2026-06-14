@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YtDownloaderLauncher", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YtDownloader.Tests", "..\YtDownloader.Tests\YtDownloader.Tests.csproj", "{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YtDownloader.Core", "..\YtDownloader.Core\YtDownloader.Core.csproj", "{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YtDownloader.Core.Tests", "..\YtDownloader.Core.Tests\YtDownloader.Core.Tests.csproj", "{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -55,6 +59,30 @@ Global
 		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|x64.Build.0 = Release|Any CPU
 		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|x86.ActiveCfg = Release|Any CPU
 		{6C4B0A92-D3F1-4E5B-A7C8-F9D0E1B2C3D4}.Release|x86.Build.0 = Release|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Debug|x64.Build.0 = Debug|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Debug|x86.Build.0 = Debug|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Release|ARM64.Build.0 = Release|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Release|x64.ActiveCfg = Release|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Release|x64.Build.0 = Release|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Release|x86.ActiveCfg = Release|Any CPU
+		{806F008E-45B4-49D9-8B2A-CE14C0C66EDA}.Release|x86.Build.0 = Release|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Debug|x64.Build.0 = Debug|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Debug|x86.Build.0 = Debug|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Release|ARM64.Build.0 = Release|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Release|x64.ActiveCfg = Release|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Release|x64.Build.0 = Release|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Release|x86.ActiveCfg = Release|Any CPU
+		{02A9B4B0-EDA0-4F25-B381-32A3C2C00A52}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
