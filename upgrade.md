@@ -1,10 +1,84 @@
 # YtDownloader Cross-Platform Upgrade Plan
 
-Status: **Planning — no code changes made yet.**
+Status: **Phase 2 in progress — Stages 1–5 complete, paused before Stage 6.**
 
 This document is the agreed plan for turning YtDownloader from a Windows-only
 WinUI 3 app into a single-codebase Avalonia app that runs natively on
 Windows, macOS, and Linux.
+
+---
+
+## Current progress
+
+### Phase 1 — Core library extraction ✅ complete
+
+All work on branch `avalonia-upgrade`. Committed as of the last merge.
+
+| Task | Result |
+|---|---|
+| `YtDownloader.Core` class library created | ✅ |
+| Models and pure services moved into Core | ✅ |
+| `IPlatformPaths` + Windows/macOS/Linux implementations | ✅ |
+| `AppSettings`, `HistoryService`, `YtDlpService` moved; paths refactored | ✅ |
+| Old `YtDownloader.csproj` wired to Core via `ProjectReference` | ✅ |
+| `YtDownloader.Core.Tests` created; test files migrated from old project | ✅ |
+| CI workflow updated to run Core tests cross-platform | ✅ |
+| Full solution builds and 211 tests pass on net8.0 | ✅ |
+
+### Phase 2 — Avalonia shell (in progress)
+
+Executed as 8 staged steps per the approved plan in `.claude/plans/misty-herding-lerdorf.md`.
+
+| Stage | Description | Result |
+|---|---|---|
+| 1 | Bump `global.json` + Core/Core.Tests TFM to `net10.0`; add `Avalonia 11.3.17` to Core | ✅ 251 tests pass on net10.0 |
+| 2 | Add 4 platform-abstraction interfaces to Core (`INotificationService`, `IFileRevealService`, `IFolderPickerService`, `IClipboardService`) | ✅ |
+| 3 | Port 4 ViewModels into Core (`DownloadViewModel`, `AdvancedViewModel`, `HistoryViewModel`, `SettingsViewModel`); `Visibility`→`bool` renames; `DispatcherQueue`→`Dispatcher.UIThread`; inject 4 new interfaces via constructor | ✅ |
+| 4 | Add Core.Tests coverage: 4 fake services + 4 ViewModel test classes; 251 tests pass | ✅ |
+| 5 | Delete old WinUI/Launcher/Tests projects; `YtDownloader/` now holds only `Assets/*.exe`, `app.ico`, `YtDownloader.sln` | ✅ |
+| 6 | Scaffold new Avalonia + FluentAvalonia app project in `YtDownloader/` | 🔲 next |
+| 7 | Port AXAML for `MainWindow` and 4 pages | 🔲 |
+| 8 | Update `YtDownloader.sln` and `.github/workflows/ci.yml` | 🔲 |
+
+#### Stage 3 naming reference
+
+The `Visibility`→`bool` renames applied across all four ViewModels:
+
+| Old name | New name |
+|---|---|
+| `VideoInfoVisibility` | `IsVideoInfoVisible` |
+| `PreviewLoadingVisibility` | `IsPreviewLoadingVisible` |
+| `QualityVisibility` | `IsQualityVisible` |
+| `VideoCodecVisibility` | `IsVideoCodecVisible` |
+| `SubtitleOptionsVisibility` | `IsSubtitleOptionsVisible` |
+| `ProgressVisibility` | `IsProgressVisible` |
+| `CancelVisibility` | `IsCancelVisible` |
+| `DoneVisibility` | `IsDoneVisible` |
+| `DownloadVisibility` | `IsDownloadVisible` |
+| `LogVisibility` | `IsLogVisible` |
+| `StopVisibility` | `IsStopVisible` |
+| `EmptyVisibility` | `IsEmptyVisible` |
+| `DiagnosticsVisibility` | `IsDiagnosticsVisible` |
+| `UpdateBannerVisibility` | `IsUpdateBannerVisible` |
+
+`BrowserDetectionService`'s call site was also removed from `DownloadViewModel.Download()` (per §4.5 — no replacement on the simple Download page).
+
+#### Package versions chosen
+
+| Package | Version | Notes |
+|---|---|---|
+| `Avalonia` | 11.3.17 | Added to Core for `Avalonia.Threading.Dispatcher` |
+| `FluentAvaloniaUI` | 2.5.1 | Targets Avalonia 11.x; chosen for Stage 6 |
+| `Avalonia.Desktop` | 11.3.17 | For Stage 6 |
+| `Avalonia.Fonts.Inter` | 11.3.17 | For Stage 6 |
+| `Avalonia.Diagnostics` | 11.3.17 | Debug-only; for Stage 6 |
+| `Microsoft.WindowsAppSDK` | TBD (was 1.5.x; need to confirm net10 compat) | For Stage 6 — needed for `WindowsNotificationService` |
+
+#### What remains in `YtDownloader/Assets/` (not yet removed)
+
+The four bundled Windows tool binaries (`yt-dlp.exe`, `ffmpeg.exe`, `ffprobe.exe`, `AtomicParsley.exe`) are still in `YtDownloader/Assets/`. They will be removed from the repo in Phase 3 (§3 — dependency manager + first-run flow), which is outside the current scope of Phase 2.
+
+---
 
 ## 0. Decisions already made
 
@@ -334,24 +408,26 @@ Actions. No script is ever run locally to produce a release artifact —
 
 ## 8. Suggested phasing
 
-1. **Core extraction** — create `YtDownloader.Core`, move portable code,
+1. ✅ **Core extraction** — create `YtDownloader.Core`, move portable code,
    convert `Visibility` → `bool`, generalize path properties to use
-   `IPlatformPaths` (stub Windows-only impl initially so the existing app
-   keeps working during the transition).
-2. **Avalonia shell stands up on Windows** — new Avalonia app project,
-   port all four pages, get it feature-complete and visually comparable to
-   the current WinUI app on Windows only. This is the largest single chunk
-   of work.
-3. **Dependency manager + first-run flow** — implement `DependencyManagerService`
+   `IPlatformPaths`. Also includes bumping to net10.0, adding the 4 new
+   platform-service interfaces, porting ViewModels, adding ViewModel tests,
+   and deleting the old WinUI/Launcher/Tests projects.
+2. 🔲 **Avalonia shell stands up on Windows** — new Avalonia app project
+   (Stages 6–8 of Phase 2): scaffold csproj + platform service impls,
+   port all four pages as AXAML, update `.sln` and CI. Get it
+   feature-complete and visually comparable to the current WinUI app on
+   Windows only. This is the next and largest single chunk of work.
+3. 🔲 **Dependency manager + first-run flow** — implement `DependencyManagerService`
    and the tooling manifest, remove `Assets/*.exe` from the repo, validate
    AtomicParsley removal.
-4. **Platform abstractions for macOS/Linux** — implement `IPlatformPaths`,
-   `INotificationService`, `IFileRevealService` for macOS and Linux; remove
-   `BrowserDetectionService`.
-5. **Packaging & CI matrix** — macOS `.app` + Linux tarball builds, CI
+4. 🔲 **Platform abstractions for macOS/Linux** — implement
+   `INotificationService` (`osascript`) and `IFileRevealService` (`open -R` /
+   `xdg-open`) for macOS and Linux; add macOS/Linux `IPlatformPaths` impls
+   (already done — `MacPlatformPaths`/`LinuxPlatformPaths` exist in Core).
+5. 🔲 **Packaging & CI matrix** — macOS `.app` + Linux tarball builds, CI
    matrix, release workflow updates.
-6. **Cleanup** — delete the old WinUI project, `YtDownloaderLauncher`,
-   `Directory.Build.targets`, `app.manifest`; update docs.
+6. 🔲 **Cleanup & docs** — update `README.md`, `CHANGELOG.md`, add `LICENSE`.
 
 Each phase should leave the app in a buildable, runnable state on at least
 Windows, so we're never in a fully-broken intermediate state for long.
