@@ -149,8 +149,8 @@ public class DownloadViewModelTests
         vm.PreviewLabel.Should().Be("Video preview");
         vm.IsVideoInfoVisible.Should().BeFalse();
         vm.IsProgressVisible.Should().BeFalse();
-        vm.IsCancelVisible.Should().BeTrue();
-        vm.IsDownloadVisible.Should().BeFalse();
+        vm.IsCancelVisible.Should().BeFalse();
+        vm.IsDownloadVisible.Should().BeTrue();
         vm.IsDoneVisible.Should().BeFalse();
         vm.ProgressValue.Should().Be(0);
     }

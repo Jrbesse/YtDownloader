@@ -1,6 +1,6 @@
 # YtDownloader Cross-Platform Upgrade Plan
 
-Status: **Phase 2 in progress — Stages 1–5 complete, paused before Stage 6.**
+Status: **Phase 2 complete — all 8 stages done. App builds and runs on macOS.**
 
 This document is the agreed plan for turning YtDownloader from a Windows-only
 WinUI 3 app into a single-codebase Avalonia app that runs natively on
@@ -36,9 +36,9 @@ Executed as 8 staged steps per the approved plan in `.claude/plans/misty-herding
 | 3 | Port 4 ViewModels into Core (`DownloadViewModel`, `AdvancedViewModel`, `HistoryViewModel`, `SettingsViewModel`); `Visibility`→`bool` renames; `DispatcherQueue`→`Dispatcher.UIThread`; inject 4 new interfaces via constructor | ✅ |
 | 4 | Add Core.Tests coverage: 4 fake services + 4 ViewModel test classes; 251 tests pass | ✅ |
 | 5 | Delete old WinUI/Launcher/Tests projects; `YtDownloader/` now holds only `Assets/*.exe`, `app.ico`, `YtDownloader.sln` | ✅ |
-| 6 | Scaffold new Avalonia + FluentAvalonia app project in `YtDownloader/` | 🔲 next |
-| 7 | Port AXAML for `MainWindow` and 4 pages | 🔲 |
-| 8 | Update `YtDownloader.sln` and `.github/workflows/ci.yml` | 🔲 |
+| 6 | Scaffold new Avalonia + FluentAvalonia app project in `YtDownloader/` | ✅ App launches on macOS. FluentAvaloniaTheme entry point: `fa:FluentAvaloniaTheme` XAML element (not StyleInclude). |
+| 7 | Port AXAML for `MainWindow` and 4 pages | ✅ NavigationView shell + DownloadPage, AdvancedPage, HistoryPage, SettingsPage. Icons deferred (SymbolIconSource class not surfaced in FA 2.5.1 avares). |
+| 8 | Update `YtDownloader.sln` and `.github/workflows/ci.yml` | ✅ YtDownloader project added to sln; `build-app` CI job added (all 3 OSes). |
 
 #### Stage 3 naming reference
 
@@ -73,6 +73,14 @@ The `Visibility`→`bool` renames applied across all four ViewModels:
 | `Avalonia.Fonts.Inter` | 11.3.17 | For Stage 6 |
 | `Avalonia.Diagnostics` | 11.3.17 | Debug-only; for Stage 6 |
 | `Microsoft.WindowsAppSDK` | TBD (was 1.5.x; need to confirm net10 compat) | For Stage 6 — needed for `WindowsNotificationService` |
+
+#### Known issues / next-session punch list
+
+| # | Issue | Fix |
+|---|---|---|
+| 1 | **Duplicate Settings button** — FluentAvalonia's `NavigationView` shows its own built-in Settings item at the bottom in addition to the one added in `FooterMenuItems`. The built-in one opens a blank page. | Add `IsSettingsVisible="False"` to the `<fa:NavigationView>` element in `MainWindow.axaml` to suppress the built-in item. |
+| 2 | **Nav icons missing** — `NavigationViewItem.Icon` doesn't exist in FA 2.5.1; `IconSource` is the correct property but `SymbolIconSource` type wasn't surfaced. | Investigate `<fa:NavigationViewItem.IconSource>` + `<fa:SymbolIconSource Symbol="…" />` (the class may exist even if `strings` didn't show it clearly) or use `<fa:FontIconSource>` as a fallback. |
+| 3 | **Duplicate Cancel button in DownloadPage** — Both the progress section and the outer `IsCancelVisible` button show independently, which can produce two visible Cancel buttons at once. | Remove the standalone Cancel button element; rely only on the one inside the progress `StackPanel`. |
 
 #### What remains in `YtDownloader/Assets/` (not yet removed)
 

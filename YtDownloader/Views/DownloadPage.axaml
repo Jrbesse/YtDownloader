@@ -1,0 +1,178 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fa="using:FluentAvalonia.UI.Controls"
+             xmlns:vm="using:YtDownloader.ViewModels"
+             x:Class="YtDownloader.Views.DownloadPage"
+             x:DataType="vm:DownloadViewModel">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <fa:InfoBar Grid.Row="0"
+                    IsOpen="{Binding IsUpdateBannerVisible}"
+                    Title="Updating yt-dlp"
+                    Message="{Binding UpdateBannerText}"
+                    IsClosable="False"
+                    Severity="Informational" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="24" Spacing="16">
+
+                <!-- URL -->
+                <TextBlock Text="YouTube URL" FontWeight="SemiBold" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding Url}"
+                             Watermark="Paste a YouTube URL here…"
+                             VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Margin="8,0,0,0"
+                            Content="Paste"
+                            Command="{Binding PasteFromClipboardCommand}" />
+                </Grid>
+                <TextBlock Text="{Binding PlaylistMessage}"
+                           IsVisible="{Binding IsPlaylist}"
+                           Foreground="{DynamicResource SystemAccentColor}"
+                           TextWrapping="Wrap"
+                           FontSize="12" />
+
+                <!-- Preview loading -->
+                <fa:ProgressRing IsVisible="{Binding IsPreviewLoadingVisible}"
+                                 Width="28" Height="28"
+                                 HorizontalAlignment="Center"
+                                 Margin="0,8" />
+
+                <!-- Preview card -->
+                <Border IsVisible="{Binding IsVideoInfoVisible}"
+                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding PreviewLabel}"
+                                   FontSize="11" Opacity="0.65" />
+                        <TextBlock Text="{Binding VideoTitle}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap"
+                                   MaxLines="2" />
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding ChannelName}"
+                                       FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="·"
+                                       FontSize="12" Opacity="0.5" />
+                            <TextBlock Text="{Binding VideoDuration}"
+                                       FontSize="12" Opacity="0.7" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Format -->
+                <TextBlock Text="Format" FontWeight="SemiBold" />
+                <WrapPanel Orientation="Horizontal">
+                    <RadioButton Content="MP4" GroupName="format"
+                                 IsChecked="{Binding IsMp4Selected}"
+                                 Margin="0,0,16,0" />
+                    <RadioButton Content="AVI" GroupName="format"
+                                 IsChecked="{Binding IsAviSelected}"
+                                 Margin="0,0,16,0" />
+                    <RadioButton Content="MP3" GroupName="format"
+                                 IsChecked="{Binding IsMp3Selected}"
+                                 Margin="0,0,16,0" />
+                    <RadioButton Content="WAV" GroupName="format"
+                                 IsChecked="{Binding IsWavSelected}" />
+                </WrapPanel>
+
+                <!-- Quality -->
+                <StackPanel IsVisible="{Binding IsQualityVisible}" Spacing="8">
+                    <TextBlock Text="Quality" FontWeight="SemiBold" />
+                    <ComboBox ItemsSource="{Binding AvailableQualities}"
+                              SelectedItem="{Binding SelectedQuality}"
+                              MinWidth="200" HorizontalAlignment="Left" />
+                </StackPanel>
+
+                <!-- Output folder -->
+                <TextBlock Text="Output folder" FontWeight="SemiBold" />
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding OutputFolder}"
+                             IsReadOnly="True"
+                             VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Margin="8,0,0,0"
+                            Content="Browse"
+                            Command="{Binding BrowseFolderCommand}" />
+                    <Button Grid.Column="2" Margin="8,0,0,0"
+                            Content="Open"
+                            Command="{Binding OpenFolderCommand}" />
+                </Grid>
+
+                <!-- Download button -->
+                <Button IsVisible="{Binding IsDownloadVisible}"
+                        Content="Download"
+                        Classes="accent"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Command="{Binding DownloadCommand}"
+                        Height="40"
+                        Margin="0,8,0,0" />
+
+                <!-- Progress -->
+                <StackPanel IsVisible="{Binding IsProgressVisible}" Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding ProgressStatus}"
+                                   TextWrapping="Wrap"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding ProgressPercent}"
+                                   Margin="8,0,0,0" />
+                    </Grid>
+                    <ProgressBar Value="{Binding ProgressValue}"
+                                 Maximum="100"
+                                 IsIndeterminate="{Binding IsProgressIndeterminate}" />
+                    <TextBlock Text="{Binding ProgressDetail}"
+                               TextWrapping="Wrap"
+                               FontSize="12"
+                               Opacity="0.7" />
+                    <Button Content="Cancel"
+                            HorizontalAlignment="Left"
+                            Command="{Binding CancelDownloadCommand}" />
+                </StackPanel>
+
+                <!-- Cancel button when not in active progress (e.g. error state) -->
+                <Button IsVisible="{Binding IsCancelVisible}"
+                        Content="Cancel"
+                        HorizontalAlignment="Left"
+                        Command="{Binding CancelDownloadCommand}" />
+
+                <!-- Done -->
+                <StackPanel IsVisible="{Binding IsDoneVisible}" Spacing="12">
+                    <Border Background="{DynamicResource SystemFillColorSuccessBackgroundBrush}"
+                            BorderBrush="{DynamicResource SystemFillColorSuccessBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16">
+                        <TextBlock Text="{Binding DoneMessage}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Open Folder"
+                                Classes="accent"
+                                Command="{Binding OpenFolderCommand}" />
+                        <Button Content="Download Another"
+                                Command="{Binding ResetCommand}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Verbose log -->
+                <StackPanel IsVisible="{Binding IsLogVisible}" Spacing="6">
+                    <TextBlock Text="Log" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding LogText}"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             Height="140"
+                             FontFamily="Consolas,Menlo,monospace"
+                             FontSize="11"
+                             TextWrapping="NoWrap" />
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

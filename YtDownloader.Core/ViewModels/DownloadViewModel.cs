@@ -276,8 +276,8 @@ public partial class DownloadViewModel : ObservableObject
         PreviewLabel       = "Video preview";
         IsVideoInfoVisible = false;
         IsProgressVisible  = false;
-        IsCancelVisible    = true;
-        IsDownloadVisible  = false;
+        IsCancelVisible    = false;
+        IsDownloadVisible  = true;
         IsDoneVisible      = false;
         ProgressValue      = 0;
     }

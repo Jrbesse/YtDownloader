@@ -1,0 +1,201 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fa="using:FluentAvalonia.UI.Controls"
+             xmlns:vm="using:YtDownloader.ViewModels"
+             xmlns:models="using:YtDownloader.Models"
+             x:Class="YtDownloader.Views.AdvancedPage"
+             x:DataType="vm:AdvancedViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="24" Spacing="16">
+
+            <!-- Format & Quality -->
+            <TextBlock Text="Format" FontWeight="SemiBold" />
+            <ComboBox ItemsSource="{Binding AvailableFormats}"
+                      SelectedItem="{Binding SelectedFormat}"
+                      MinWidth="160" HorizontalAlignment="Left" />
+
+            <StackPanel IsVisible="{Binding IsQualityVisible}" Spacing="8">
+                <TextBlock Text="Quality" FontWeight="SemiBold" />
+                <ComboBox ItemsSource="{Binding AvailableQualities}"
+                          SelectedItem="{Binding SelectedQuality}"
+                          MinWidth="200" HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding IsVideoCodecVisible}" Spacing="8">
+                <TextBlock Text="Video codec" FontWeight="SemiBold" />
+                <ComboBox ItemsSource="{Binding VideoCodecs}"
+                          SelectedItem="{Binding SelectedVideoCodec}"
+                          MinWidth="160" HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <TextBlock Text="Audio bitrate" FontWeight="SemiBold" />
+            <ComboBox ItemsSource="{Binding AudioBitrates}"
+                      SelectedItem="{Binding SelectedAudioBitrate}"
+                      MinWidth="120" HorizontalAlignment="Left" />
+
+            <!-- Output folder -->
+            <TextBlock Text="Output folder" FontWeight="SemiBold" />
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBox Grid.Column="0"
+                         Text="{Binding OutputFolder}"
+                         IsReadOnly="True"
+                         VerticalAlignment="Center" />
+                <Button Grid.Column="1" Margin="8,0,0,0"
+                        Content="Browse"
+                        Command="{Binding BrowseFolderCommand}" />
+                <Button Grid.Column="2" Margin="8,0,0,0"
+                        Content="Open"
+                        Command="{Binding OpenFolderCommand}" />
+            </Grid>
+
+            <!-- Options -->
+            <TextBlock Text="Options" FontWeight="SemiBold" />
+
+            <CheckBox Content="Remove sponsor segments (SponsorBlock)"
+                      IsChecked="{Binding EnableSponsorBlock}" />
+
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
+                  RowSpacing="8" ColumnSpacing="12">
+
+                <TextBlock Grid.Row="0" Grid.Column="0"
+                           Text="Cookies from browser"
+                           VerticalAlignment="Center" />
+                <ComboBox Grid.Row="0" Grid.Column="1"
+                          ItemsSource="{Binding Browsers}"
+                          SelectedItem="{Binding SelectedBrowser}"
+                          MinWidth="140" HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0"
+                           Text="Playlist start"
+                           VerticalAlignment="Center" />
+                <TextBox Grid.Row="1" Grid.Column="1"
+                         Text="{Binding PlaylistStartText}"
+                         Watermark="1"
+                         Width="80"
+                         HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0"
+                           Text="Playlist end"
+                           VerticalAlignment="Center" />
+                <TextBox Grid.Row="2" Grid.Column="1"
+                         Text="{Binding PlaylistEndText}"
+                         Watermark="e.g. 10"
+                         Width="80"
+                         HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0"
+                           Text="Output template"
+                           VerticalAlignment="Center" />
+                <TextBox Grid.Row="3" Grid.Column="1"
+                         Text="{Binding OutputTemplate}"
+                         Watermark="%(title)s.%(ext)s"
+                         MinWidth="260"
+                         HorizontalAlignment="Left" />
+            </Grid>
+
+            <WrapPanel Orientation="Horizontal">
+                <CheckBox Content="Embed thumbnail"
+                          IsChecked="{Binding EmbedThumbnail}"
+                          Margin="0,0,16,4" />
+                <CheckBox Content="Write thumbnail to file"
+                          IsChecked="{Binding WriteThumbnail}"
+                          Margin="0,0,16,4" />
+                <CheckBox Content="Embed metadata"
+                          IsChecked="{Binding EmbedMetadata}"
+                          Margin="0,0,0,4" />
+            </WrapPanel>
+
+            <!-- Subtitles -->
+            <CheckBox Content="Download subtitles"
+                      IsChecked="{Binding SubtitlesEnabled}" />
+
+            <StackPanel IsVisible="{Binding IsSubtitleOptionsVisible}"
+                        Spacing="8"
+                        Margin="24,0,0,0">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto"
+                      RowSpacing="8" ColumnSpacing="12">
+                    <TextBlock Grid.Row="0" Grid.Column="0"
+                               Text="Language code"
+                               VerticalAlignment="Center" />
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding SubtitleLanguage}"
+                             Watermark="en"
+                             Width="80"
+                             HorizontalAlignment="Left" />
+                </Grid>
+                <CheckBox Content="Embed subtitles in video"
+                          IsChecked="{Binding EmbedSubtitles}" />
+                <CheckBox Content="Include auto-generated subtitles"
+                          IsChecked="{Binding WriteAutoSubtitles}" />
+            </StackPanel>
+
+            <!-- URLs -->
+            <TextBlock Text="URLs (one per line)" FontWeight="SemiBold" />
+            <TextBox Text="{Binding UrlsText}"
+                     AcceptsReturn="True"
+                     Height="120"
+                     Watermark="https://youtube.com/watch?v=…&#x0A;https://youtube.com/watch?v=…"
+                     TextWrapping="NoWrap" />
+
+            <!-- Queue controls -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Start Queue"
+                        Classes="accent"
+                        Command="{Binding StartQueueCommand}" />
+                <Button Content="Stop"
+                        IsVisible="{Binding IsStopVisible}"
+                        Command="{Binding StopQueueCommand}" />
+            </StackPanel>
+
+            <!-- Queue list -->
+            <ItemsControl ItemsSource="{Binding Queue}"
+                          IsVisible="{Binding IsQueueRunning}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:AdvancedDownloadQueueItem">
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="12,8"
+                                Margin="0,0,0,4">
+                            <Grid RowDefinitions="Auto,Auto">
+                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding Url}"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="12" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding StatusText}"
+                                               Margin="8,0,0,0"
+                                               FontSize="12"
+                                               Opacity="0.7" />
+                                </Grid>
+                                <ProgressBar Grid.Row="1"
+                                             Value="{Binding Percent}"
+                                             Maximum="100"
+                                             IsIndeterminate="{Binding IsIndeterminate}"
+                                             IsVisible="{Binding IsIndeterminate}"
+                                             Height="3"
+                                             Margin="0,4,0,0" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Verbose log -->
+            <StackPanel IsVisible="{Binding IsLogVisible}" Spacing="6">
+                <TextBlock Text="Log" FontWeight="SemiBold" />
+                <TextBox Text="{Binding LogText}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         Height="140"
+                         FontFamily="Consolas,Menlo,monospace"
+                         FontSize="11"
+                         TextWrapping="NoWrap" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

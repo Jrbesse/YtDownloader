@@ -39,3 +39,26 @@ jobs:
         with:
           name: test-results-core-${{ matrix.os }}
           path: TestResults/
+
+  # ── Avalonia app build (cross-platform) ─────────────────────────────────────
+  build-app:
+    name: Build App (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: [test-core]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build app
+        run: dotnet build YtDownloader/YtDownloader.csproj --configuration Release

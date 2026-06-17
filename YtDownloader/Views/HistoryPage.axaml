@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:YtDownloader.ViewModels"
+             xmlns:models="using:YtDownloader.Models"
+             x:Class="YtDownloader.Views.HistoryPage"
+             x:DataType="vm:HistoryViewModel">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="24,24,24,12" ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0"
+                       Text="Download History"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1"
+                    Content="Clear History"
+                    Command="{Binding ClearHistoryCommand}" />
+        </Grid>
+
+        <Grid Grid.Row="1">
+
+            <!-- Empty state -->
+            <StackPanel IsVisible="{Binding IsEmptyVisible}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="8">
+                <TextBlock Text="No downloads yet"
+                           HorizontalAlignment="Center"
+                           FontSize="16"
+                           Opacity="0.6" />
+                <TextBlock Text="Completed downloads will appear here."
+                           HorizontalAlignment="Center"
+                           FontSize="13"
+                           Opacity="0.45" />
+            </StackPanel>
+
+            <!-- History list -->
+            <ScrollViewer IsVisible="{Binding !IsEmptyVisible}">
+                <StackPanel Margin="24,0,24,24" Spacing="4">
+
+                    <!-- Diagnostics -->
+                    <Border IsVisible="{Binding IsDiagnosticsVisible}"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12"
+                            Margin="0,0,0,12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Diagnostics"
+                                       FontWeight="SemiBold"
+                                       FontSize="12"
+                                       Opacity="0.7" />
+                            <TextBox Text="{Binding DiagnosticInfo}"
+                                     IsReadOnly="True"
+                                     AcceptsReturn="True"
+                                     FontFamily="Consolas,Menlo,monospace"
+                                     FontSize="11"
+                                     Background="Transparent"
+                                     BorderThickness="0" />
+                        </StackPanel>
+                    </Border>
+
+                    <ItemsControl ItemsSource="{Binding HistoryItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:DownloadHistoryItem">
+                                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="14,10"
+                                        Margin="0,0,0,4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="3">
+                                            <TextBlock Text="{Binding Title}"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding SubText}"
+                                                       FontSize="12"
+                                                       Opacity="0.65" />
+                                            <TextBlock Text="{Binding OutputPath}"
+                                                       FontSize="11"
+                                                       Opacity="0.45"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding DateText}"
+                                                   VerticalAlignment="Top"
+                                                   Margin="12,0,0,0"
+                                                   FontSize="12"
+                                                   Opacity="0.55" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

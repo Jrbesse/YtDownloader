@@ -1,0 +1,164 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:YtDownloader.ViewModels"
+             x:Class="YtDownloader.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="24" Spacing="20">
+
+            <TextBlock Text="Settings"
+                       FontSize="20"
+                       FontWeight="SemiBold" />
+
+            <!-- General -->
+            <TextBlock Text="General"
+                       FontWeight="SemiBold"
+                       Opacity="0.6"
+                       FontSize="12"
+                       Margin="0,4,0,0" />
+
+            <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Show notifications" FontWeight="Medium" />
+                        <TextBlock Text="Get notified when a download finishes"
+                                   FontSize="12" Opacity="0.6" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding ShowNotifications}"
+                                  VerticalAlignment="Center"
+                                  OnContent="" OffContent="" />
+                </Grid>
+
+                <Separator />
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Auto-check for updates" FontWeight="Medium" />
+                        <TextBlock Text="Check yt-dlp version on startup"
+                                   FontSize="12" Opacity="0.6" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding AutoCheckUpdates}"
+                                  VerticalAlignment="Center"
+                                  OnContent="" OffContent="" />
+                </Grid>
+
+                <Separator />
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Remember last output folder" FontWeight="Medium" />
+                        <TextBlock Text="Restore the folder used in the last session"
+                                   FontSize="12" Opacity="0.6" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding RememberOutputFolder}"
+                                  VerticalAlignment="Center"
+                                  OnContent="" OffContent="" />
+                </Grid>
+
+                <Separator />
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Verbose logging" FontWeight="Medium" />
+                        <TextBlock Text="Show full yt-dlp output below the progress bar"
+                                   FontSize="12" Opacity="0.6" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding VerboseLogging}"
+                                  VerticalAlignment="Center"
+                                  OnContent="" OffContent="" />
+                </Grid>
+
+                <Separator />
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Show diagnostics in History" FontWeight="Medium" />
+                        <TextBlock Text="Display storage path and load info on the History page"
+                                   FontSize="12" Opacity="0.6" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding ShowDiagnostics}"
+                                  VerticalAlignment="Center"
+                                  OnContent="" OffContent="" />
+                </Grid>
+
+                <Separator />
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Advanced mode" FontWeight="Medium" />
+                        <TextBlock Text="Add an Advanced tab for batch downloads and extra options"
+                                   FontSize="12" Opacity="0.6" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding IsAdvancedMode}"
+                                  VerticalAlignment="Center"
+                                  OnContent="" OffContent="" />
+                </Grid>
+            </StackPanel>
+
+            <!-- Appearance -->
+            <TextBlock Text="Appearance"
+                       FontWeight="SemiBold"
+                       Opacity="0.6"
+                       FontSize="12"
+                       Margin="0,8,0,0" />
+
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Theme" FontWeight="Medium" />
+                    <TextBlock Text="Choose between system, light, or dark theme"
+                               FontSize="12" Opacity="0.6" />
+                </StackPanel>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding AvailableThemes}"
+                          SelectedItem="{Binding SelectedTheme}"
+                          MinWidth="120"
+                          VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- Dependency versions -->
+            <TextBlock Text="Components"
+                       FontWeight="SemiBold"
+                       Opacity="0.6"
+                       FontSize="12"
+                       Margin="0,8,0,0" />
+
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
+                      RowSpacing="8" ColumnSpacing="24">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="yt-dlp" Opacity="0.65" FontSize="13" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding YtDlpVersion}" FontSize="13" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="ffmpeg" Opacity="0.65" FontSize="13" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding FfmpegVersion}" FontSize="13" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="ffprobe" Opacity="0.65" FontSize="13" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FfprobeVersion}" FontSize="13" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="AtomicParsley" Opacity="0.65" FontSize="13" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AtomicParsleyVersion}" FontSize="13" />
+                </Grid>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                <Button Content="Check for updates"
+                        Command="{Binding CheckUpdatesCommand}" />
+                <TextBlock Text="{Binding UpdateStatus}"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Opacity="0.7" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

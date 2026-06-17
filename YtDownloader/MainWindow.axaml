@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fa="using:FluentAvalonia.UI.Controls"
+        xmlns:views="using:YtDownloader.Views"
+        x:Class="YtDownloader.MainWindow"
+        Title="YtDownloader"
+        Width="820" Height="950"
+        MinWidth="620" MinHeight="500"
+        Icon="avares://YtDownloader/app.ico">
+
+    <fa:NavigationView x:Name="NavView"
+                       PaneDisplayMode="Left"
+                       SelectionChanged="NavView_SelectionChanged">
+
+        <fa:NavigationView.MenuItems>
+            <fa:NavigationViewItem x:Name="DownloadNavItem"
+                                   Content="Download"
+                                   Tag="download" />
+            <fa:NavigationViewItem x:Name="AdvancedNavItem"
+                                   Content="Advanced"
+                                   Tag="advanced"
+                                   IsVisible="False" />
+            <fa:NavigationViewItem x:Name="HistoryNavItem"
+                                   Content="History"
+                                   Tag="history" />
+        </fa:NavigationView.MenuItems>
+
+        <fa:NavigationView.FooterMenuItems>
+            <fa:NavigationViewItem x:Name="SettingsNavItem"
+                                   Content="Settings"
+                                   Tag="settings" />
+        </fa:NavigationView.FooterMenuItems>
+
+        <Panel>
+            <views:DownloadPage x:Name="DownloadPageCtrl" />
+            <views:AdvancedPage x:Name="AdvancedPageCtrl" IsVisible="False" />
+            <views:HistoryPage  x:Name="HistoryPageCtrl"  IsVisible="False" />
+            <views:SettingsPage x:Name="SettingsPageCtrl" IsVisible="False" />
+        </Panel>
+
+    </fa:NavigationView>
+
+</Window>
